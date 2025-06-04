@@ -1,100 +1,96 @@
 <template>
-  <div class="annual-operation-container">
+  <div class="ele-page">
     <!-- 主要内容 -->
-    <div class="row">
-      <div class="col-12">
-        <div class="card">
-          <div class="card-block">
+    <div class="ele-page">
+      <div class="ele-admin-wrapper">
+        <div class="ele-card">
+          <div class="ele-card-body">
             <!-- 绘图选项区域 -->
-            <div class="row mb-3">
-              <div class="col-12">
-                <div class="row">
-                  <div class="col-md-2">
-                    <div class="form-group">
-                      <label>类型:</label>
-                      <el-select
-                        v-model="drawOptions.type"
-                        placeholder="请选择类型"
-                      >
-                        <el-option label="年度" value="annual" />
-                        <el-option label="季度" value="quarter" />
-                        <el-option label="月度" value="monthly" />
-                      </el-select>
-                    </div>
-                  </div>
-                  <div class="col-md-2">
-                    <div class="form-group">
-                      <label>年份:</label>
-                      <el-date-picker
-                        v-model="drawOptions.year"
-                        type="year"
-                        placeholder="选择年份"
-                      />
-                    </div>
-                  </div>
-                  <div class="col-md-2">
-                    <div class="form-group">
-                      <label>季度:</label>
-                      <el-select
-                        v-model="drawOptions.quarter"
-                        placeholder="请选择季度"
-                      >
-                        <el-option label="第一季度" value="Q1" />
-                        <el-option label="第二季度" value="Q2" />
-                        <el-option label="第三季度" value="Q3" />
-                        <el-option label="第四季度" value="Q4" />
-                      </el-select>
-                    </div>
-                  </div>
-                  <div class="col-md-2">
-                    <div class="form-group">
-                      <label>月份:</label>
-                      <el-date-picker
-                        v-model="drawOptions.month"
-                        type="month"
-                        placeholder="选择月份"
-                      />
-                    </div>
-                  </div>
-                  <div class="col-md-2">
-                    <div class="form-group">
-                      <label>运力组织单位:</label>
-                      <el-select
-                        v-model="drawOptions.unit"
-                        placeholder="请选择单位"
-                      >
-                        <el-option
-                          label="华中销售"
-                          value="huazhong"
-                        />
-                        <el-option label="神皖能源" value="shenwan" />
-                      </el-select>
-                    </div>
-                  </div>
-                  <div class="col-md-1">
-                    <div class="form-group">
-                      <label>船舶:</label>
-                      <el-select
-                        v-model="drawOptions.ship"
-                        placeholder="请选择船舶"
-                      >
-                        <el-option label="全部" value="all" />
-                      </el-select>
-                    </div>
-                  </div>
-                  <div class="col-md-1">
-                    <div class="form-group">
-                      <label>区域:</label>
-                      <el-select
-                        v-model="drawOptions.region"
-                        placeholder="请选择区域"
-                      >
-                        <el-option label="全部" value="all" />
-                        <el-option label="渤海湾" value="bohai" />
-                        <el-option label="华中" value="huazhong" />
-                      </el-select>
-                    </div>
-                  </div>
+            <div class="d-flex flex-wrap align-items-end mb-3" style="gap: 20px; min-width:0;">
+              <div style="flex: 1 1 200px; min-width: 200px; max-width: 260px;">
+                <div class="form-group">
+                  <label>类型:</label>
+                  <el-select
+                    v-model="drawOptions.type"
+                    placeholder="请选择类型"
+                  >
+                    <el-option label="年度" value="annual" />
+                    <el-option label="季度" value="quarter" />
+                    <el-option label="月度" value="monthly" />
+                  </el-select>
+                </div>
+              </div>
+              <div style="flex: 1 1 200px; min-width: 200px; max-width: 260px;">
+                <div class="form-group">
+                  <label>年份:</label>
+                  <el-date-picker
+                    v-model="drawOptions.year"
+                    type="year"
+                    placeholder="选择年份"
+                  />
+                </div>
+              </div>
+              <div style="flex: 1 1 200px; min-width: 200px; max-width: 260px;">
+                <div class="form-group">
+                  <label>季度:</label>
+                  <el-select
+                    v-model="drawOptions.quarter"
+                    placeholder="请选择季度"
+                  >
+                    <el-option label="第一季度" value="Q1" />
+                    <el-option label="第二季度" value="Q2" />
+                    <el-option label="第三季度" value="Q3" />
+                    <el-option label="第四季度" value="Q4" />
+                  </el-select>
+                </div>
+              </div>
+              <div style="flex: 1 1 200px; min-width: 200px; max-width: 260px;">
+                <div class="form-group">
+                  <label>月份:</label>
+                  <el-date-picker
+                    v-model="drawOptions.month"
+                    type="month"
+                    placeholder="选择月份"
+                  />
+                </div>
+              </div>
+              <div style="flex: 1 1 240px; min-width: 240px; max-width: 320px;">
+                <div class="form-group">
+                  <label>运力组织单位:</label>
+                  <el-select
+                    v-model="drawOptions.unit"
+                    placeholder="请选择单位"
+                  >
+                    <el-option
+                      label="华中销售"
+                      value="huazhong"
+                    />
+                    <el-option label="神皖能源" value="shenwan" />
+                  </el-select>
+                </div>
+              </div>
+              <div style="flex: 1 1 160px; min-width: 160px; max-width: 220px;">
+                <div class="form-group">
+                  <label>船舶:</label>
+                  <el-select
+                    v-model="drawOptions.ship"
+                    placeholder="请选择船舶"
+                  >
+                    <el-option label="全部" value="all" />
+                  </el-select>
+                </div>
+              </div>
+              <div style="flex: 1 1 160px; min-width: 160px; max-width: 220px;">
+                <div class="form-group">
+                  <label>区域:</label>
+                  <el-select
+                    v-model="drawOptions.region"
+                    placeholder="请选择区域"
+                  >
+                    <el-option label="全部" value="all" />
+                    <el-option label="渤海湾" value="bohai" />
+                    <el-option label="华中" value="huazhong" />
+                  </el-select>
                 </div>
               </div>
             </div>
@@ -120,7 +116,7 @@
             </div>
 
             <!-- 运行图显示区域 -->
-            <div class="row">
+            <div class="ele-card">
               <div class="col-12">
                 <div class="chart-container">
                   <!-- 运行图类型切换选项卡 -->
@@ -302,48 +298,70 @@
                       <template #label>
                         <i class="el-icon-data-analysis"></i> 实际运行图
                       </template>
-                      <!-- 图例说明 -->
-                      <div class="legend-box mt-3 mb-3">
-                        <div class="d-flex flex-wrap">
-                          <div class="legend-item">
-                            <span class="legend-color bg-success"></span>
-                            <span>计划航线</span>
-                          </div>
-                          <div class="legend-item">
-                            <span class="legend-color bg-info"></span>
-                            <span>确认航线</span>
-                          </div>
-                          <div class="legend-item">
-                            <span class="legend-color bg-warning"></span>
-                            <span>实际航线</span>
-                          </div>
-                          <div class="legend-item">
-                            <span class="legend-color bg-danger"></span>
-                            <span>偏离航线</span>
-                          </div>
-                          <div class="legend-item">
-                            <span class="legend-dot"></span>
-                            <span>停泊点</span>
-                          </div>
+
+                      <!-- 预警横幅 -->
+                      <div class="warning-banner-container">
+                        <div id="globalWarningBanner" class="warning-banner severity-none">
+                          <span class="icon">ℹ️</span> <span id="warningSummaryText">正在加载预警信息...</span>
+                          <a id="toggleWarningPanelBtn" style="display:none;">查看详情 &raquo;</a>
                         </div>
                       </div>
-                      
+
+                      <!-- 预警详情面板 -->
+                      <div id="warningDetailsPanelContainer" class="warning-details-panel-container">
+                        <div class="warning-panel-header">
+                          <h3><span id="panelIcon" class="panel-icon">⚠️</span>预警信息列表</h3>
+                          <button id="closeWarningPanelBtn" title="关闭面板">&times;</button>
+                        </div>
+                        <ul id="warningListUL" class="warning-list-ui"></ul>
+                      </div>
+
+                      <!-- 图例说明 -->
+                      <div class="legend">
+                        <div class="legend-item">
+                          <div class="legend-line legend-demand"></div>
+                          <span>需求线</span>
+                        </div>
+                        <div class="legend-item">
+                          <div class="legend-line legend-planned"></div>
+                          <span>计划线</span>
+                        </div>
+                        <div class="legend-item">
+                          <div class="legend-line legend-actual"></div>
+                          <span>实际线</span>
+                        </div>
+                      </div>
+
+                      <!-- 运行图标题 -->
+                      <div class="gantt-chart-title">
+                        <h2 id="chartMainTitle">航运运行图示例 (2024年3月份)</h2>
+                        <h4 id="chartSubTitle">国家能源集团航运公司–华中/神皖船舶运行图</h4>
+                      </div>
+
                       <!-- 运行图编辑区域 -->
                       <div class="chart-edit-area mb-3">
                         <div class="d-flex">
                           <!-- 运行图主区域 -->
-                          <div 
-                            class="chart-main-area" 
-                            style="
-                              flex-grow: 1; 
-                              position: relative; 
-                              min-height: 600px; 
-                              background: #fff; 
-                              border: 1px solid #e9ecef;
-                              overflow-x: auto; /* 添加水平滚动条 */
-                            "
-                          >
-                            <canvas id="dynamicChart" ref="dynamicChart" style="width: 100%; height: 100%;"></canvas>
+                          <div class="chart-display-container">
+                            <div id="chartTableWrapper" class="chart-table-wrapper">
+                              <table id="mainGanttTable"></table>
+                              <svg id="ganttSvgOverlay">
+                                <defs>
+                                  <marker id="arrow-demand-svg" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+                                    <path d="M 0 0 L 10 5 L 0 10 z" fill="#FFC107" />
+                                  </marker>
+                                  <marker id="arrow-planned-svg" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+                                    <path d="M 0 0 L 10 5 L 0 10 z" fill="#B0BEC5" />
+                                  </marker>
+                                  <marker id="arrow-actual-svg" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+                                    <path d="M 0 0 L 10 5 L 0 10 z" fill="#26C6DA" />
+                                  </marker>
+                                </defs>
+                                <g id="areaWarningOverlaysGroupSvg"></g>
+                                <g id="trainPathsGroupSvg"></g>
+                                <g id="discreteWarningIconsGroupSvg"></g>
+                              </svg>
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -795,32 +813,18 @@
             const textPositionIndex = Math.min(4, adjustedPoints.length - 1);
             const textPosition = adjustedPoints[textPositionIndex];
             svgText.setAttribute('x', textPosition.x);
-            svgText.setAttribute('y', textPosition.y - 10); // Offset text slightly above the line
+            svgText.setAttribute('y', textPosition.y - 10);
             svgText.textContent = shipName;
 
-            svgPath.addEventListener('mouseover', (e) => {
-                svgPath.classList.add('hovered');
-                tooltip.style.display = 'block';
-                tooltip.innerHTML = `${shipName}<br>(${voyageName})`;
-                tooltip.style.left = (e.pageX + 10) + 'px';
-                tooltip.style.top = (e.pageY - 30) + 'px';
-            });
-            svgPath.addEventListener('mousemove', (e) => {
-                tooltip.style.left = (e.pageX + 10) + 'px';
-                tooltip.style.top = (e.pageY - 30) + 'px';
-            });
-            svgPath.addEventListener('mouseout', () => {
-                svgPath.classList.remove('hovered');
-                tooltip.style.display = 'none';
-            });
+            // 删除事件监听器
+            svgPath.style.pointerEvents = 'none';
+
         } else {
              svgPath.setAttribute('d', ''); // Clear path if no points
              svgText.textContent = ''; // Clear text
         }
     };
     
-    // Selector for red line points was '.route-point'
-    // Selector for black line points was '.route-point-black'
     processPath('redPath', 'redText', '.route-point', '神华562', '202409', 'red');
     processPath('blackPath', 'blackText', '.route-point-black', '租船1', '202411', 'black');
 }
@@ -833,12 +837,405 @@
       drawRoute(); // Changed from drawPaths to drawRoute
     }, 500); // Keep a delay to ensure table rendering
   });
+
+  // 预警系统相关
+  const MOCK_WARNINGS = [
+    { id: "W001", severity: "high", type: "滞期", serviceId: "VESSEL_B_actual", atPort: "黄骅", message: "租船01（实际）在黄骅滞期", details: "已超3小时", timestamp: "10:00" },
+    { id: "W002", severity: "medium", type: "晚点", serviceId: "VESSEL_A_actual", atPort: "神皖能源", message: "神华562（实际）在神皖能源晚点", details: "预计晚点30分钟", timestamp: "14:00" },
+    { id: "W003", severity: "medium", type: "气象", serviceId: "VESSEL_A_actual", atPort: "华中销售", message: "神华562（实际）遇到大风天气", details: "阵风8级，注意安全", timestamp: "15:00" },
+    { id: "W004", severity: "high", type: "特殊海况", serviceId: "VESSEL_B_actual", atPort: "神皖能源", message: "租船01（实际）遇到特殊海况", details: "海浪较大，作业暂停", timestamp: "16:00" }
+  ];
+
+  const portConfig = [
+    { name: '天津', states: ['交接|待离', '装船', '抵港|待装'] },
+    { name: '黄骅', states: ['交接|待离', '装船', '抵港|待装'] },
+    { name: '社会港', states: ['交接|待离', '装船', '抵港|待装'], largeGapAfter: true },
+    { name: '华中销售', states: ['抵港待卸', '装船', '交接待离'] },
+    { name: '神皖能源', states: ['抵港待卸', '装船', '交接待离'] }
+  ];
+
+  const TIME_COLUMNS = 32;
+  const TIME_AXIS_LABEL_INTERVAL = 4;
+  const CHART_START_HOUR = 7;
+  const CHART_END_HOUR = 23;
+  const HOURS_PER_COLUMN = (CHART_END_HOUR - CHART_START_HOUR) / TIME_COLUMNS;
+
+  const cellInfoMap = new Map();
+
+  const trainServices = [
+    { id: "VESSEL_C_demand", type: "demand", label: "神华563", segments: [
+      { port: "天津", state: "抵港|待装", time: 8.0 }, { port: "天津", state: "抵港|待装", time: 9.0 },
+      { port: "天津", state: "装船", time: 9.0 }, { port: "天津", state: "装船", time: 10.0 },
+      { port: "黄烨", state: "交接|待离", time: 9.0 }, { port: "黄烨", state: "交接|待离", time: 10.0 },
+      { port: "黄烨", state: "抵港|待装", time: 10.0 },
+      { port: "华中销售", state: "抵港|待装", time: 13.0 }, { port: "华中销售", state: "抵港|待装", time: 14.0 },
+      { port: "华中销售", state: "装船", time: 14.0 }, { port: "华中销售", state: "装船", time: 15.0 },
+      { port: "华中销售", state: "交接|待离", time: 15.0 }, { port: "华中销售", state: "交接|待离", time: 16.0 },
+      { port: "华中销售", state: "抵港|待装", time: 16.0 }
+    ]},
+    // ... 其他服务数据 ...
+  ];
+
+  // 预警系统函数
+  function getIconCharForWarning(type, severity) {
+    return type === '封港' ? '⛔' : 
+           type === '特殊海况' ? '🌊' : 
+           (type === '滞期' || type === '晚点') ? '⏰' : 
+           type === '气象' ? '🌦️' : 
+           severity === 'high' ? '❗' : 
+           severity === 'medium' ? '⚠️' : 'ℹ️';
+  }
+
+  function getSeverityClass(severity) {
+    return `severity-${severity || 'info'}`;
+  }
+
+  function displayWarnings(warnings) {
+    const warningBannerEl = document.getElementById('globalWarningBanner');
+    const warningSummaryTextEl = document.getElementById('warningSummaryText');
+    const toggleWarningPanelBtnEl = document.getElementById('toggleWarningPanelBtn');
+    const warningPanelContainerEl = document.getElementById('warningDetailsPanelContainer');
+    const panelIconEl = document.getElementById('panelIcon');
+    const warningListUlEl = document.getElementById('warningListUL');
+
+    if (warnings.length > 0) {
+      let highSeverityCount = warnings.filter(w => w.severity === 'high').length;
+      let mediumSeverityCount = warnings.filter(w => w.severity === 'medium').length;
+      let overallSeverity = 'low';
+      if (warnings.some(w => w.severity === 'info') && !highSeverityCount && !mediumSeverityCount && !warnings.some(w => w.severity === 'low')) overallSeverity = 'info';
+      if (mediumSeverityCount > 0) overallSeverity = 'medium';
+      if (highSeverityCount > 0) overallSeverity = 'high';
+
+      warningBannerEl.className = 'warning-banner ' + getSeverityClass(overallSeverity);
+      panelIconEl.textContent = getIconCharForWarning(null, overallSeverity);
+      warningSummaryTextEl.innerHTML = `当前有 <b>${warnings.length}</b> 条预警信息` + (highSeverityCount > 0 ? ` (含 <b>${highSeverityCount}</b> 条高级别)` : '');
+      toggleWarningPanelBtnEl.style.display = 'inline';
+    } else {
+      warningBannerEl.className = 'warning-banner severity-none';
+      panelIconEl.textContent = '✔️';
+      warningSummaryTextEl.innerHTML = '<span class="icon">✔️</span> 当前无预警信息';
+      toggleWarningPanelBtnEl.style.display = 'none';
+      warningPanelContainerEl.classList.remove('open');
+    }
+
+    warningListUlEl.innerHTML = '';
+    warnings.sort((a,b) => {
+      const order = { high: 3, medium: 2, low: 1, info: 0 };
+      return (order[b.severity] || 0) - (order[a.severity] || 0);
+    }).forEach(w => {
+      const li = document.createElement('li');
+      li.className = 'warning-item ' + getSeverityClass(w.severity);
+      li.dataset.warningId = w.id;
+      if(w.serviceId) li.dataset.targetServiceId = w.serviceId;
+      if(w.entityName) li.dataset.targetEntityName = w.entityName;
+      li.innerHTML = `
+        <span class="item-icon">${getIconCharForWarning(w.type, w.severity)}</span>
+        <div class="message-content">
+          <span class="summary">${w.message}</span>
+          <span class="details">${w.details}</span>
+          <span class="meta">${w.timestamp ? `时间: ${w.timestamp} | ` : ''}<a href="#" class="locate-on-chart-btn" title="定位预警">定位图上</a></span>
+        </div>
+      `;
+      warningListUlEl.appendChild(li);
+    });
+  }
+
+  // 运行图函数
+  function createGanttTable() {
+    const mainGanttTable = document.getElementById('mainGanttTable');
+    if (!mainGanttTable) return;
+
+    mainGanttTable.innerHTML = '';
+    cellInfoMap.clear();
+    let absoluteRowIndex = 0;
+
+    const headerRow = mainGanttTable.insertRow();
+    absoluteRowIndex++;
+    const mainHeaderCell = headerRow.insertCell();
+    mainHeaderCell.colSpan = 2;
+    mainHeaderCell.textContent = '港口/状态';
+    mainHeaderCell.className = 'table-header-cell right-border-strong';
+
+    for (let i = 0; i < TIME_COLUMNS; i++) {
+      const cell = headerRow.insertCell();
+      cell.className = 'time-slot-cell table-header-cell';
+      if ((i + 1) % 10 === 0 && i < TIME_COLUMNS -1) cell.classList.add('dashed-right');
+    }
+
+    const endHeaderCell = headerRow.insertCell();
+    endHeaderCell.textContent = '港口重复';
+    endHeaderCell.className = 'table-header-cell left-border-strong';
+
+    portConfig.forEach((port) => {
+      port.states.forEach((state, stateIdx) => {
+        const row = mainGanttTable.insertRow();
+        row.dataset.absoluteRowIndex = absoluteRowIndex;
+        absoluteRowIndex++;
+
+        if (stateIdx === 0) {
+          const portCell = row.insertCell();
+          portCell.rowSpan = port.states.length;
+          portCell.textContent = port.name;
+          portCell.className = 'port-name-cell right-border-strong';
+        }
+
+        const stateCell = row.insertCell();
+        stateCell.textContent = state;
+        stateCell.className = 'state-name-cell';
+
+        if (stateIdx === 0) row.classList.add('top-border-strong');
+        if (stateIdx === port.states.length - 1) row.classList.add('bottom-border-strong');
+
+        for (let colIdx = 0; colIdx < TIME_COLUMNS; colIdx++) {
+          const cell = row.insertCell();
+          cell.className = 'time-slot-cell';
+          cell.id = `cell_${port.name}_${state.replace(/[^a-zA-Z0-9\-]/g,'-')}_${colIdx}`;
+          if ((colIdx + 1) % 10 === 0 && colIdx < TIME_COLUMNS -1) cell.classList.add('dashed-right');
+        }
+
+        if (stateIdx === 0) {
+          const endPortCell = row.insertCell();
+          endPortCell.rowSpan = port.states.length;
+          endPortCell.textContent = port.name;
+          endPortCell.className = 'port-name-cell left-border-strong';
+        }
+      });
+
+      const emptyRow = mainGanttTable.insertRow();
+      emptyRow.dataset.absoluteRowIndex = absoluteRowIndex;
+      absoluteRowIndex++;
+      emptyRow.className = 'empty-spacer-row';
+      if (port.largeGapAfter) emptyRow.classList.add('large-gap');
+
+      for (let i = 0; i < 2 + TIME_COLUMNS + 1; i++) {
+        const cell = emptyRow.insertCell();
+        if (i === 0) cell.className = 'port-name-cell right-border-strong';
+        else if (i === 1) cell.className = 'state-name-cell';
+        else if (i === 2 + TIME_COLUMNS) cell.className = 'port-name-cell left-border-strong';
+        else cell.className = 'time-slot-cell';
+        if (i > 1 && i < 2 + TIME_COLUMNS && (i - 2 + 1) % 10 === 0 && (i-2) < TIME_COLUMNS -1) cell.classList.add('dashed-right');
+      }
+    });
+
+    requestAnimationFrame(() => {
+      const ganttSvgOverlay = document.getElementById('ganttSvgOverlay');
+      ganttSvgOverlay.style.width = `${mainGanttTable.offsetWidth}px`;
+      ganttSvgOverlay.style.height = `${mainGanttTable.offsetHeight}px`;
+      ganttSvgOverlay.setAttribute('viewBox', `0 0 ${mainGanttTable.offsetWidth} ${mainGanttTable.offsetHeight}`);
+
+      for (const port of portConfig) {
+        for (const state of port.states) {
+          for (let colIdx = 0; colIdx < TIME_COLUMNS; colIdx++) {
+            const cellId = `cell_${port.name}_${state.replace(/[^a-zA-Z0-9\-]/g,'-')}_${colIdx}`;
+            const cellElement = document.getElementById(cellId);
+            if (cellElement) {
+              const cellX = cellElement.offsetLeft + cellElement.offsetWidth / 2;
+              const cellY = cellElement.offsetTop + cellElement.offsetHeight / 2;
+              cellInfoMap.set(cellId, { element: cellElement, centerX: cellX, centerY: cellY });
+            }
+          }
+        }
+      }
+
+      drawTrainPathsAndVesselWarnings();
+      drawAreaWarnings(MOCK_WARNINGS.filter(w => w.type === '封港' || w.type === '特殊海况'));
+    });
+  }
+
+  function getCellCenter(portName, stateName, timeColIdx) {
+    const cellKey = `cell_${portName}_${stateName.replace(/[^a-zA-Z0-9\-]/g,'-')}_${timeColIdx}`;
+    return cellInfoMap.get(cellKey);
+  }
+
+  function serviceTimeToColIdx(timeInHours) {
+    let colIdx = Math.round((timeInHours - CHART_START_HOUR) / HOURS_PER_COLUMN);
+    return Math.max(0, Math.min(TIME_COLUMNS - 1, colIdx));
+  }
+
+  function drawTrainPathsAndVesselWarnings() {
+    const trainPathsGroupSvg = document.getElementById('trainPathsGroupSvg');
+    if (!trainPathsGroupSvg) return;
+
+    trainPathsGroupSvg.innerHTML = '';
+
+    let tooltip = document.querySelector('.custom-tooltip');
+    if (!tooltip) {
+      tooltip = document.createElement('div');
+      tooltip.className = 'custom-tooltip';
+      document.body.appendChild(tooltip);
+    }
+
+    trainServices.forEach(service => {
+      const pathPoints = [];
+      const warningSegments = (service.type === 'actual') ? MOCK_WARNINGS.filter(w => w.serviceId === service.id) : [];
+
+      if (service.segments) {
+        service.segments.forEach((segment, idx) => {
+          const cellInfo = getCellCenter(segment.port, segment.state, serviceTimeToColIdx(segment.time));
+          if (cellInfo) {
+            pathPoints.push(`${cellInfo.centerX},${cellInfo.centerY}`);
+
+            const warningHere = warningSegments.find(w => w.atPort === segment.port);
+            if (warningHere) {
+              const iconChar = getIconCharForWarning(warningHere.type, warningHere.severity);
+              const icon = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+              icon.setAttribute('x', cellInfo.centerX + 8);
+              icon.setAttribute('y', cellInfo.centerY - 8);
+              icon.setAttribute('class', 'warning-icon-on-svg ' + getSeverityClass(warningHere.severity));
+              icon.textContent = iconChar;
+              icon.style.fontSize = '18px';
+              icon.style.cursor = 'pointer';
+
+              icon.addEventListener('mouseover', function(e) {
+                tooltip.style.display = 'block';
+                tooltip.style.left = (e.pageX + 10) + 'px';
+                tooltip.style.top = (e.pageY - 30) + 'px';
+                tooltip.innerHTML = `<b>${warningHere.message}</b><br>${warningHere.details}`;
+              });
+
+              icon.addEventListener('mousemove', function(e) {
+                tooltip.style.left = (e.pageX + 10) + 'px';
+                tooltip.style.top = (e.pageY - 30) + 'px';
+              });
+
+              icon.addEventListener('mouseout', function() {
+                tooltip.style.display = 'none';
+              });
+
+              trainPathsGroupSvg.appendChild(icon);
+            }
+          }
+        });
+      }
+
+      if (pathPoints.length > 0) {
+        const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        path.setAttribute('d', 'M' + pathPoints.join(' L'));
+        path.setAttribute('class', service.type + '-line-svg');
+        path.dataset.serviceId = service.id;
+
+        if (service.type === 'demand') path.setAttribute('marker-end', 'url(#arrow-demand-svg)');
+        else if (service.type === 'planned') path.setAttribute('marker-end', 'url(#arrow-planned-svg)');
+        else if (service.type === 'actual') path.setAttribute('marker-end', 'url(#arrow-actual-svg)');
+
+        trainPathsGroupSvg.appendChild(path);
+
+        if (service.label) {
+          const lastPointCoords = pathPoints[pathPoints.length - 1].split(',');
+          let midX = parseFloat(lastPointCoords[0]);
+          let midY = parseFloat(lastPointCoords[1]);
+
+          if (pathPoints.length > 1) {
+            const secondLastPointCoords = pathPoints[Math.max(0, pathPoints.length - 2)].split(',');
+            midX = (parseFloat(secondLastPointCoords[0]) + parseFloat(lastPointCoords[0])) / 2;
+            midY = (parseFloat(secondLastPointCoords[1]) + parseFloat(lastPointCoords[1])) / 2;
+          }
+
+          const labelTextElement = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+          labelTextElement.setAttribute('x', midX);
+          labelTextElement.setAttribute('y', midY - 8);
+          labelTextElement.setAttribute('class', 'line-label-svg');
+          labelTextElement.textContent = service.label;
+          trainPathsGroupSvg.appendChild(labelTextElement);
+        }
+      }
+    });
+  }
+
+  function drawAreaWarnings(warningsToDraw) {
+    const areaWarningOverlaysGroupSvg = document.getElementById('areaWarningOverlaysGroupSvg');
+    if (!areaWarningOverlaysGroupSvg) return;
+
+    if (!warningsToDraw || warningsToDraw === MOCK_WARNINGS) {
+      areaWarningOverlaysGroupSvg.innerHTML = '';
+    } else if (warningsToDraw.length > 0) {
+      areaWarningOverlaysGroupSvg.innerHTML = '';
+    }
+
+    warningsToDraw.forEach(w => {
+      const startColIdx = serviceTimeToColIdx(parseFloat(w.timestamp.split(':')[0]));
+      const endColIdx = startColIdx + 2; // 假设预警持续2小时
+
+      if (w.type === '封港' && w.entityType === 'port' && w.entityName && startColIdx !== null && endColIdx !== null) {
+        const portInfo = portConfig.find(p => p.name === w.entityName);
+        if (portInfo) {
+          const firstStateCellInfo = getCellCenter(w.entityName, portInfo.states[0], startColIdx);
+          const lastStateCellInfo = getCellCenter(w.entityName, portInfo.states[portInfo.states.length - 1], startColIdx);
+          const startXCellInfo = getCellCenter(w.entityName, portInfo.states[0], startColIdx);
+          const endXCellInfo = getCellCenter(w.entityName, portInfo.states[0], endColIdx);
+
+          if (firstStateCellInfo && lastStateCellInfo && startXCellInfo && endXCellInfo) {
+            const x = startXCellInfo.centerX - startXCellInfo.element.offsetWidth / 2;
+            const width = (endXCellInfo.centerX + endXCellInfo.element.offsetWidth/2) - x;
+            const y = firstStateCellInfo.centerY - firstStateCellInfo.element.offsetHeight / 2;
+            const height = (lastStateCellInfo.centerY + lastStateCellInfo.element.offsetHeight/2) - y;
+
+            if (width > 0 && height > 0) {
+              const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+              rect.setAttribute('x', x);
+              rect.setAttribute('y', y);
+              rect.setAttribute('width', width);
+              rect.setAttribute('height', height);
+              rect.setAttribute('class', 'area-warning-overlay-svg port-closure-overlay-svg');
+
+              const title = document.createElementNS('http://www.w3.org/2000/svg', 'title');
+              title.textContent = `${w.message}\n${w.details}`;
+              rect.appendChild(title);
+
+              areaWarningOverlaysGroupSvg.appendChild(rect);
+
+              const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+              text.setAttribute('x', x + width / 2);
+              text.setAttribute('y', y + height / 2);
+              text.setAttribute('class', 'area-warning-text-svg');
+              text.textContent = `封: ${w.entityName.slice(0,2)}`;
+              areaWarningOverlaysGroupSvg.appendChild(text);
+            }
+          }
+        }
+      }
+    });
+  }
+
+  // 事件监听器
+  onMounted(() => {
+    const toggleWarningPanelBtnEl = document.getElementById('toggleWarningPanelBtn');
+    const closeWarningPanelBtnEl = document.getElementById('closeWarningPanelBtn');
+    const warningPanelContainerEl = document.getElementById('warningDetailsPanelContainer');
+    const warningListUlEl = document.getElementById('warningListUL');
+
+    toggleWarningPanelBtnEl.addEventListener('click', (e) => {
+      e.preventDefault();
+      warningPanelContainerEl.classList.toggle('open');
+    });
+
+    closeWarningPanelBtnEl.addEventListener('click', () => {
+      warningPanelContainerEl.classList.remove('open');
+    });
+
+    warningListUlEl.addEventListener('click', function(event) {
+      if (event.target.classList.contains('locate-on-chart-btn')) {
+        event.preventDefault();
+        const listItem = event.target.closest('.warning-item');
+        const warningId = listItem.dataset.warningId;
+        const specificWarning = MOCK_WARNINGS.find(w => w.id === warningId);
+        if (specificWarning) {
+          drawAreaWarnings([specificWarning]);
+        }
+      }
+    });
+
+    createGanttTable();
+    displayWarnings(MOCK_WARNINGS);
+  });
 </script>
 
 <style scoped>
   /* 容器样式 */
   .annual-operation-container {
     padding: 20px;
+    background-color: var(--el-bg-color);
+    color: var(--el-text-color-primary);
   }
 
   /* 面包屑与标题 */
@@ -876,10 +1273,11 @@
 
   /* 卡片样式 */
   .card {
-    background-color: #fff;
-    border-radius: 4px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+    background-color: var(--el-bg-color);
+    border-radius: var(--el-border-radius-base);
+    box-shadow: var(--el-box-shadow-light);
     margin-bottom: 30px;
+    border: 1px solid var(--el-border-color-light);
   }
 
   .card-block {
@@ -907,12 +1305,16 @@
     margin-bottom: 15px;
   }
 
+  .btn-group .el-button {
+    margin-right: 8px;
+  }
+
   /* 运行图容器样式 */
   .chart-container {
-    background: #fff;
-    border: 1px solid #e9ecef;
-    border-radius: 4px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+    background: var(--el-bg-color);
+    border: 1px solid var(--el-border-color-light);
+    border-radius: var(--el-border-radius-base);
+    box-shadow: var(--el-box-shadow-light);
     padding: 15px;
   }
 
@@ -960,7 +1362,7 @@
   /* 图例 */
   .legend-box {
     padding: 10px;
-    border-bottom: 1px solid #e9ecef;
+    border-bottom: 1px solid var(--el-border-color-light);
     margin-bottom: 15px;
   }
 
@@ -969,6 +1371,7 @@
     align-items: center;
     margin-right: 20px;
     margin-bottom: 5px;
+    color: var(--el-text-color-primary);
   }
 
   .legend-color {
@@ -988,10 +1391,10 @@
   /* 文件上传区域 */
   .upload-area {
     padding: 30px;
-    border: 2px dashed #e9ecef;
-    border-radius: 4px;
+    border: 2px dashed var(--el-border-color);
+    border-radius: var(--el-border-radius-base);
     text-align: center;
-    background-color: #f8f9fa;
+    background-color: var(--el-bg-color-page);
     transition: all 0.3s ease;
     margin-bottom: 20px;
   }
@@ -1005,26 +1408,29 @@
 
   /* 表格样式 */
   .table-cell {
-    border: 1px solid #0070c0;
-    width: 80px; /* 增加宽度 */
-    min-width: 80px; /* 增加最小宽度 */
+    border: 1px solid var(--el-border-color);
+    width: 80px;
+    min-width: 80px;
     height: 30px;
     min-height: 30px;
     box-sizing: border-box;
     padding: 0;
     margin: 0;
-    text-align: center; /* 确保文本居中 */
+    text-align: center;
+    background-color: var(--el-bg-color);
+    color: var(--el-text-color-primary);
   }
 
   .empty-cell {
-    border: 1px solid #0070c080;
-    width: 40px; /* 从30px增加到40px */
-    min-width: 40px; /* 从30px增加到40px */
-    height: 30px; 
+    border: 1px solid var(--el-border-color-lighter);
+    width: 40px;
+    min-width: 40px;
+    height: 30px;
     min-height: 30px;
     box-sizing: border-box;
     padding: 0;
     margin: 0;
+    background-color: var(--el-bg-color);
   }
 
   .empty-row td {
@@ -1045,41 +1451,33 @@
   }
 
   .top-border-strong td {
-    border-top: 2px solid #0070c0;
+    border-top: 2px solid var(--el-border-color);
   }
 
   .bottom-border-strong td {
-    border-bottom: 2px solid #0070c0;
+    border-bottom: 2px solid var(--el-border-color);
   }
 
   .status-col {
-    border-left: 2px solid #0070c0 !important;
-    border-right: 2px solid #0070c0 !important;
+    border-left: 2px solid var(--el-border-color) !important;
+    border-right: 2px solid var(--el-border-color) !important;
   }
 
   .empty-row-second-col {
-    border-left: 2px solid #0070c0 !important;
-    border-right: 2px solid #0070c0 !important;
+    border-left: 2px solid var(--el-border-color) !important;
+    border-right: 2px solid var(--el-border-color) !important;
   }
 
   .last-col-left-strong {
-    border-left: 2px solid #0070c0 !important;
+    border-left: 2px solid var(--el-border-color) !important;
   }
 
   .header-right-strong {
-    border-right: 2px solid #0070c0 !important;
-  }
-
-  .left-border-strong {
-    border-left: 2px solid #0070c0 !important;
-  }
-
-  .right-border-strong {
-    border-right: 2px solid #0070c0 !important;
+    border-right: 2px solid var(--el-border-color) !important;
   }
 
   .first-col-strong {
-    border-right: 2px solid #0070c0 !important;
+    border-right: 2px solid var(--el-border-color) !important;
   }
 
   /* 工具类 */
@@ -1196,27 +1594,28 @@
   .custom-tooltip {
     position: absolute;
     padding: 8px;
-    background: rgba(255, 255, 255, 0.9);
-    border: 1px solid #333;
-    border-radius: 4px;
+    background: var(--el-bg-color-overlay);
+    border: 1px solid var(--el-border-color);
+    border-radius: var(--el-border-radius-base);
     pointer-events: none;
     z-index: 1000;
     font-size: 12px;
     display: none;
     text-align: center;
     white-space: pre-line;
+    color: var(--el-text-color-primary);
   }
 
   #redPath, #blackPath {
     stroke-width: 2;
     cursor: pointer;
-    pointer-events: all; /* Important for mouse events to register on SVG paths */
+    pointer-events: all;
   }
 
   #redPath.hovered, #blackPath.hovered {
     stroke-width: 3;
     stroke-opacity: 1;
-    filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.5));
+    filter: drop-shadow(0 0 2px var(--el-box-shadow));
   }
   /* Ensure other specific styles from yunxingtu.html are also present or adapted */
   .last-col-strong { /* Added from yunxingtu.html */
@@ -1224,5 +1623,439 @@
   }
   .empty-row { /* Ensure this style applies correctly */
     /* height: 10px !important; /* Height is set dynamically for special gap */
+  }
+
+  .form-short {
+    max-width: 140px;
+    min-width: 100px;
+    flex: 0 0 140px;
+    padding-right: 4px;
+    padding-left: 4px;
+  }
+
+  /* 预警系统样式 */
+  .warning-banner-container {
+    width: 95%;
+    max-width: 1200px;
+    margin-bottom: 15px;
+  }
+
+  .warning-banner {
+    padding: 10px 15px;
+    border-radius: 6px;
+    text-align: center;
+    font-size: 0.95em;
+    transition: background-color 0.3s ease;
+    border: 1px solid transparent;
+  }
+
+  .warning-banner .icon {
+    margin-right: 8px;
+  }
+
+  .warning-banner a {
+    color: inherit;
+    font-weight: bold;
+    text-decoration: underline;
+    margin-left: 15px;
+    cursor: pointer;
+  }
+
+  .warning-banner.severity-none {
+    background-color: #28a745;
+    border-color: #28a745;
+    color: white;
+  }
+
+  .warning-banner.severity-low {
+    background-color: #17a2b8;
+    border-color: #17a2b8;
+    color: white;
+  }
+
+  .warning-banner.severity-medium {
+    background-color: #ffc107;
+    border-color: #ffc107;
+    color: #212529;
+  }
+
+  .warning-banner.severity-high {
+    background-color: #dc3545;
+    border-color: #dc3545;
+    color: white;
+  }
+
+  /* 预警详情面板样式 */
+  .warning-details-panel-container {
+    position: fixed;
+    top: 0;
+    right: -390px;
+    width: 380px;
+    height: 100%;
+    background-color: #2d333a;
+    border-left: 1px solid #444c56;
+    box-shadow: -3px 0 15px rgba(0,0,0,0.25);
+    z-index: 1050;
+    transition: right 0.35s ease-in-out;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .warning-details-panel-container.open {
+    right: 0px;
+  }
+
+  .warning-panel-header {
+    padding: 15px 20px;
+    border-bottom: 1px solid #444c56;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .warning-panel-header h3 {
+    margin: 0;
+    font-size: 1.2em;
+    color: #e5e7eb;
+  }
+
+  .warning-panel-header .panel-icon {
+    margin-right: 8px;
+  }
+
+  #closeWarningPanelBtn {
+    background: none;
+    border: none;
+    color: #9ea7b3;
+    font-size: 1.8em;
+    line-height: 1;
+    cursor: pointer;
+    padding: 0 5px;
+  }
+
+  #closeWarningPanelBtn:hover {
+    color: #e5e7eb;
+  }
+
+  .warning-list-ui {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    overflow-y: auto;
+    flex-grow: 1;
+  }
+
+  .warning-list-ui li {
+    padding: 12px 20px;
+    border-bottom: 1px solid #373e47;
+    font-size: 0.9em;
+    display: flex;
+    align-items: flex-start;
+  }
+
+  .warning-list-ui li:last-child {
+    border-bottom: none;
+  }
+
+  .warning-list-ui .item-icon {
+    margin-right: 12px;
+    font-size: 1.3em;
+    line-height: 1.3;
+    padding-top: 2px;
+  }
+
+  .warning-list-ui .message-content .summary {
+    font-weight: bold;
+    display: block;
+    margin-bottom: 4px;
+    font-size: 0.95em;
+  }
+
+  .warning-list-ui .message-content .details {
+    font-size: 0.85em;
+    color: #adb5bd;
+    margin-bottom: 5px;
+    white-space: pre-wrap;
+  }
+
+  .warning-list-ui .message-content .meta {
+    font-size: 0.75em;
+    color: #868e96;
+  }
+
+  .warning-list-ui .message-content .meta .locate-on-chart-btn {
+    color: #63a4ff;
+    text-decoration: none;
+    cursor: pointer;
+  }
+
+  .warning-list-ui .message-content .meta .locate-on-chart-btn:hover {
+    text-decoration: underline;
+  }
+
+  .warning-item.severity-high .item-icon,
+  .warning-item.severity-high .summary {
+    color: #f48fb1;
+  }
+
+  .warning-item.severity-medium .item-icon,
+  .warning-item.severity-medium .summary {
+    color: #ffb74d;
+  }
+
+  .warning-item.severity-low .item-icon,
+  .warning-item.severity-low .summary {
+    color: #81d4fa;
+  }
+
+  .warning-item.severity-info .item-icon,
+  .warning-item.severity-info .summary {
+    color: #90caf9;
+  }
+
+  /* 图例样式 */
+  .legend {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-bottom: 25px;
+    padding: 12px 15px;
+    background-color: #2d333a;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    margin-right: 20px;
+    margin-bottom: 5px;
+    font-size: 14px;
+    color: #c5c8cc;
+  }
+
+  .legend-item:last-child {
+    margin-right: 0;
+  }
+
+  .legend-line {
+    width: 35px;
+    height: 5px;
+    margin-right: 10px;
+    border-radius: 2px;
+  }
+
+  .legend-demand {
+    background-color: #FFC107;
+  }
+
+  .legend-planned {
+    background-color: #B0BEC5;
+  }
+
+  .legend-actual {
+    background-color: #26C6DA;
+  }
+
+  /* 运行图容器样式 */
+  .chart-display-container {
+    width: 95%;
+    max-width: 1200px;
+    background-color: #051532;
+    border: 1px solid #30363d;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.25);
+    padding: 20px;
+    border-radius: 8px;
+    overflow-x: auto;
+    display: flex;
+    justify-content: center;
+  }
+
+  .chart-table-wrapper {
+    position: relative;
+  }
+
+  #mainGanttTable {
+    border-collapse: collapse;
+    table-layout: fixed;
+    border: 2px solid #ADE1FF;
+    color: #c5c8cc;
+  }
+
+  #mainGanttTable th,
+  #mainGanttTable td {
+    border: 1px solid rgba(173, 225, 255, 0.3);
+    padding: 0;
+    margin: 0;
+    box-sizing: border-box;
+    text-align: center;
+    vertical-align: middle;
+    font-size: 11px;
+  }
+
+  .table-header-cell {
+    height: 30px;
+    min-height: 30px;
+    font-weight: bold;
+  }
+
+  .port-name-cell {
+    width: 80px;
+    min-width: 80px;
+    font-weight: bold;
+  }
+
+  .state-name-cell {
+    width: 70px;
+    min-width: 70px;
+    border-left: 2px solid #ADE1FF !important;
+    border-right: 2px solid #ADE1FF !important;
+  }
+
+  .time-slot-cell {
+    width: 25px;
+    min-width: 25px;
+    height: 25px;
+    min-height: 25px;
+  }
+
+  .time-slot-cell.dashed-right {
+    border-right: 2px dashed #ADE1FF !important;
+  }
+
+  .time-slot-cell.dashed-left {
+    border-left: 1px dashed #ADE1FF !important;
+  }
+
+  .empty-spacer-row td {
+    height: 10px !important;
+    min-height: 10px !important;
+  }
+
+  .empty-spacer-row.large-gap td {
+    height: 60px !important;
+    min-height: 60px !important;
+  }
+
+  /* SVG覆盖层样式 */
+  #ganttSvgOverlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 10;
+  }
+
+  #ganttSvgOverlay path,
+  #ganttSvgOverlay line {
+    pointer-events: auto;
+    stroke-linecap: round;
+  }
+
+  .demand-line-svg {
+    stroke: #FFC107;
+    stroke-width: 2.5;
+    fill: none;
+    stroke-dasharray: 6, 4;
+  }
+
+  .planned-line-svg {
+    stroke: #B0BEC5;
+    stroke-width: 2.5;
+    fill: none;
+  }
+
+  .actual-line-svg {
+    stroke: #26C6DA;
+    stroke-width: 3;
+    fill: none;
+  }
+
+  .line-label-svg {
+    font-size: 9px;
+    fill: #e1e4e8;
+    text-anchor: middle;
+    pointer-events: none;
+    paint-order: stroke;
+    stroke: #24292e;
+    stroke-width: 3px;
+    stroke-linejoin: round;
+  }
+
+  /* 预警图标样式 */
+  .warning-icon-on-svg {
+    font-size: 12px;
+    cursor: help;
+    text-anchor: start;
+    pointer-events: auto;
+  }
+
+  .warning-icon-on-svg.severity-high {
+    fill: #f48fb1;
+  }
+
+  .warning-icon-on-svg.severity-medium {
+    fill: #ffb74d;
+  }
+
+  .warning-icon-on-svg.severity-low {
+    fill: #81d4fa;
+  }
+
+  .area-warning-overlay-svg {
+    opacity: 0.35;
+  }
+
+  .port-closure-overlay-svg {
+    fill: #c62828;
+  }
+
+  .sea-condition-overlay-svg-high {
+    fill: #d32f2f;
+  }
+
+  .sea-condition-overlay-svg-medium {
+    fill: #ef6c00;
+  }
+
+  .sea-condition-overlay-svg-low {
+    fill: #0277bd;
+  }
+
+  .area-warning-text-svg {
+    font-size: 11px;
+    fill: #ffffff;
+    text-anchor: middle;
+    dominant-baseline: middle;
+    pointer-events: none;
+    font-weight: bold;
+    paint-order: stroke;
+    stroke: rgba(0,0,0,0.7);
+    stroke-width: 2px;
+    stroke-linejoin: round;
+  }
+
+  /* 运行图标题样式 */
+  .gantt-chart-title {
+    text-align: center;
+    margin-bottom: 15px;
+  }
+
+  .gantt-chart-title h2,
+  .gantt-chart-title h4 {
+    color: #e5e7eb;
+    margin: 5px 0;
+  }
+
+  .gantt-chart-title h2 {
+    font-size: 1.4em;
+  }
+
+  .gantt-chart-title h4 {
+    font-size: 0.9em;
+    font-weight: normal;
+    color: #adb5bd;
   }
 </style>
