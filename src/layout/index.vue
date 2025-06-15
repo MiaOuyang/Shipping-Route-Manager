@@ -98,16 +98,9 @@
     </template>
     <!-- 顶栏右侧按钮 -->
     <template #right>
-      <!-- 全屏切换 -->
-      <layout-tool class="hidden-sm-and-down" @click="toggleFullscreen">
-        <el-icon style="transform: scale(1.18)">
-          <CompressOutlined v-if="isFullscreen" style="stroke-width: 4" />
-          <ExpandOutlined v-else style="stroke-width: 4" />
-        </el-icon>
-      </layout-tool>
-      <!-- 语言切换 -->
-      <layout-tool :class="{ 'hidden-sm-and-down': tabBar && tabInHeader }">
-        <i18n-icon :icon-style="{ transform: 'scale(1.15)' }" />
+      <!-- 时钟 -->
+      <layout-tool class="hidden-sm-and-down">
+        <header-clock />
       </layout-tool>
       <!-- 消息通知 -->
       <layout-tool :class="{ 'hidden-sm-and-down': tabBar && tabInHeader }">
@@ -211,6 +204,7 @@
   import RouterLayout from '@/components/RouterLayout/index.vue';
   import HeaderUser from './components/header-user.vue';
   import HeaderNotice from './components/header-notice.vue';
+  import HeaderClock from './components/header-clock.vue';
   import I18nIcon from './components/i18n-icon.vue';
   import PageFooter from './components/page-footer.vue';
   import SettingDrawer from './components/setting-drawer.vue';

@@ -36,26 +36,33 @@
             <template #title>
               <span class="collapse-title">展开/收起图表分析</span>
             </template>
-            <div class="stats-container port-charts">
-              <div class="chart-block">
-                <div class="chart-title">本周泊位使用率趋势</div>
-                <div ref="trendChartRef" class="chart-box"></div>
+            <div class="dashboard-grid">
+              <!-- 上方：左-柱状图，右-统计卡片 -->
+              <div class="dashboard-bar">
+                <div class="chart-title">港口吞吐量统计</div>
+                <div ref="barChartRef" class="chart-box"></div>
               </div>
-              <div class="chart-block">
-                <div class="chart-title">各港口泊位数量统计</div>
-                <div ref="berthCountChartRef" class="chart-box"></div>
+              <div class="dashboard-cards">
+                <div v-for="(item, idx) in dashboardCards" :key="idx" :class="['dashboard-card', item.color]">
+                  <div class="card-title">{{ item.title }}</div>
+                  <div class="card-value">{{ item.value }}</div>
+                  <div class="card-trend" :class="item.trend > 0 ? 'up' : 'down'">
+                    <span>{{ item.trend > 0 ? '+' : '' }}{{ item.trend }}%</span>
+                  </div>
+                </div>
               </div>
-              <div class="chart-block">
-                <div class="chart-title">港口吃水限制分布</div>
-                <div ref="draftLimitChartRef" class="chart-box"></div>
+              <!-- 下方：左-环形图，中-分布，右-热力图 -->
+              <div class="dashboard-pie">
+                <div class="chart-title">吞吐量统计</div>
+                <div ref="pieChartRef" class="chart-box"></div>
               </div>
-              <div class="chart-block">
-                <div class="chart-title">泊位使用热力图</div>
+              <div class="dashboard-map">
+                <div class="chart-title">港口分布</div>
+                <div ref="mapChartRef" class="chart-box"></div>
+              </div>
+              <div class="dashboard-heatmap">
+                <div class="chart-title">在线活动</div>
                 <div ref="heatmapChartRef" class="chart-box"></div>
-              </div>
-              <div class="chart-block">
-                <div class="chart-title">靠类型泊位数量分布</div>
-                <div ref="berthTypePieChartRef" class="chart-box"></div>
               </div>
             </div>
           </el-collapse-item>
@@ -65,29 +72,13 @@
       <el-tab-pane label="港口基础信息" name="basic">
         <!-- 搜索栏 -->
         <div class="search-container">
-          <div class="search-form">
-            <el-input
-              v-model="searchForm.keyword"
-              placeholder="请输入港口名/泊位名称搜索"
-              class="search-item"
-              clearable
-              @clear="resetSearch"
-              @keyup.enter="handleSearch"
-            />
-            <el-button type="primary" @click="handleSearch">查询</el-button>
-            <el-button type="success" @click="handleExportExcel">
-              下载Excel
-            </el-button>
-            <el-button type="primary" @click="handleAdd">新增港口</el-button>
-          </div>
+          <el-input v-model="searchForm.keyword" placeholder="请输入港口名/泊位名称搜索" class="search-input" clearable @clear="resetSearch" @keyup.enter="handleSearch" />
+          <el-button type="primary" @click="handleSearch">查询</el-button>
+          <el-button type="success" @click="handleExportExcel">下载Excel</el-button>
+          <el-button type="primary" @click="handleAdd">新增港口</el-button>
         </div>
         <!-- 表格 -->
-        <el-table
-          :data="portList"
-          border
-          style="width: 100%"
-          @selection-change="handleSelectionChange"
-        >
+        <el-table :data="portList" border style="width: 100%" @selection-change="handleSelectionChange">
           <el-table-column type="selection" width="50" fixed="left" />
           <el-table-column type="index" label="序号" width="60" fixed="left" />
           <el-table-column prop="portName" label="港口名" min-width="100" />
@@ -98,47 +89,19 @@
           <el-table-column prop="nightNav" label="是否可夜航" min-width="100" />
           <el-table-column prop="pilotage" label="引水要求" min-width="100" />
           <el-table-column prop="berthName" label="泊位名称" min-width="120" />
-          <el-table-column
-            prop="frontDepth"
-            label="泊位前沿水深(米)"
-            min-width="120"
-          />
-          <el-table-column
-            prop="berthLength"
-            label="泊位长度(米)"
-            min-width="100"
-          />
-          <el-table-column
-            prop="berthWidth"
-            label="泊位宽度(米)"
-            min-width="100"
-          />
-          <el-table-column
-            prop="shipCondition"
-            label="可靠船舶条件"
-            min-width="120"
-          />
-          <el-table-column
-            prop="machineCount"
-            label="装卸机械数量"
-            min-width="100"
-          />
-          <el-table-column
-            prop="capacity"
-            label="装卸能力(吨/时)"
-            min-width="120"
-          />
+          <el-table-column prop="frontDepth" label="泊位前沿水深(米)" min-width="120" />
+          <el-table-column prop="berthLength" label="泊位长度(米)" min-width="100" />
+          <el-table-column prop="berthWidth" label="泊位宽度(米)" min-width="100" />
+          <el-table-column prop="shipCondition" label="可靠船舶条件" min-width="120" />
+          <el-table-column prop="machineCount" label="装卸机械数量" min-width="100" />
+          <el-table-column prop="capacity" label="装卸能力(吨/时)" min-width="120" />
           <el-table-column prop="shorePower" label="岸电情况" min-width="100" />
           <el-table-column prop="remark" label="备注" min-width="120" />
           <el-table-column label="操作" width="120" fixed="right">
             <template #default="scope">
               <el-button link @click="handleView(scope.row)">查看</el-button>
-              <el-button link type="primary" @click="handleEdit(scope.row)">
-                编辑
-              </el-button>
-              <el-button link type="danger" @click="handleDelete(scope.row)">
-                删除
-              </el-button>
+              <el-button link type="primary" @click="handleEdit(scope.row)">编辑</el-button>
+              <el-button link type="danger" @click="handleDelete(scope.row)">删除</el-button>
             </template>
           </el-table-column>
         </el-table>
@@ -151,7 +114,7 @@
           :total="totalPorts"
           @size-change="handleSizeChange"
           @current-change="handleCurrentChange"
-          style="margin-top: 20px"
+          style="margin-top: 20px;"
         />
       </el-tab-pane>
       <!-- 港口具体信息 -->
@@ -160,82 +123,40 @@
           <el-empty description="请在港口基础信息页面选择需要查看的港口" />
         </div>
         <template v-else>
-          <div
-            v-for="port in selectedPorts"
-            :key="port.id"
-            class="port-detail-card"
-          >
+          <div v-for="port in selectedPorts" :key="port.id" class="port-detail-card">
             <div class="detail-card-header">
-              <h3 class="detail-card-title">
-                {{ port.portName }} - {{ port.berthName }}
-              </h3>
+              <h3 class="detail-card-title">{{ port.portName }} - {{ port.berthName }}</h3>
             </div>
             <el-descriptions title="基础信息" :column="3" border>
-              <el-descriptions-item label="港口名">
-                {{ port.portName }}
-              </el-descriptions-item>
-              <el-descriptions-item label="泊位号">
-                {{ port.berthNo }}
-              </el-descriptions-item>
-              <el-descriptions-item label="泊位名称">
-                {{ port.berthName }}
-              </el-descriptions-item>
-              <el-descriptions-item label="航道/港池">
-                {{ port.channel }}
-              </el-descriptions-item>
-              <el-descriptions-item label="吃水(米)">
-                {{ port.draft }}
-              </el-descriptions-item>
-              <el-descriptions-item label="湖型">
-                {{ port.lakeType }}
-              </el-descriptions-item>
-              <el-descriptions-item label="是否可夜航">
-                {{ port.nightNav }}
-              </el-descriptions-item>
-              <el-descriptions-item label="引水要求">
-                {{ port.pilotage }}
-              </el-descriptions-item>
-              <el-descriptions-item label="泊位前沿水深(米)">
-                {{ port.frontDepth }}
-              </el-descriptions-item>
-              <el-descriptions-item label="泊位长度(米)">
-                {{ port.berthLength }}
-              </el-descriptions-item>
-              <el-descriptions-item label="泊位宽度(米)">
-                {{ port.berthWidth }}
-              </el-descriptions-item>
-              <el-descriptions-item label="可靠船舶条件">
-                {{ port.shipCondition }}
-              </el-descriptions-item>
-              <el-descriptions-item label="装卸机械数量">
-                {{ port.machineCount }}
-              </el-descriptions-item>
-              <el-descriptions-item label="装卸能力(吨/时)">
-                {{ port.capacity }}
-              </el-descriptions-item>
-              <el-descriptions-item label="岸电情况">
-                {{ port.shorePower }}
-              </el-descriptions-item>
-              <el-descriptions-item label="备注">
-                {{ port.remark }}
-              </el-descriptions-item>
+              <el-descriptions-item label="港口名">{{ port.portName }}</el-descriptions-item>
+              <el-descriptions-item label="港口代码">{{ port.portCode }}</el-descriptions-item>
+              <el-descriptions-item label="泊位号">{{ port.berthNo }}</el-descriptions-item>
+              <el-descriptions-item label="泊位名称">{{ port.berthName }}</el-descriptions-item>
+              <el-descriptions-item label="港口类型">{{ port.portType }}</el-descriptions-item>
+              <el-descriptions-item label="所属公司">{{ port.company }}</el-descriptions-item>
+              <el-descriptions-item label="航道/港池">{{ port.channel }}</el-descriptions-item>
+              <el-descriptions-item label="吃水(米)">{{ port.draft }}</el-descriptions-item>
+              <el-descriptions-item label="泊位前沿水深(米)">{{ port.frontDepth }}</el-descriptions-item>
+              <el-descriptions-item label="泊位长度(米)">{{ port.berthLength }}</el-descriptions-item>
+              <el-descriptions-item label="泊位宽度(米)">{{ port.berthWidth }}</el-descriptions-item>
+              <el-descriptions-item label="最大靠泊吨位">{{ port.maxShip }}</el-descriptions-item>
+              <el-descriptions-item label="可靠船舶条件">{{ port.shipCondition }}</el-descriptions-item>
+              <el-descriptions-item label="装卸机械数量">{{ port.machineCount }}</el-descriptions-item>
+              <el-descriptions-item label="装卸能力(吨/时)">{{ port.capacity }}</el-descriptions-item>
+              <el-descriptions-item label="岸电情况">{{ port.shorePower }}</el-descriptions-item>
+              <el-descriptions-item label="建成时间">{{ port.buildYear }}</el-descriptions-item>
+              <el-descriptions-item label="管理单位">{{ port.manager }}</el-descriptions-item>
+              <el-descriptions-item label="港口地址">{{ port.address }}</el-descriptions-item>
+              <el-descriptions-item label="泊位设施描述">{{ port.facility }}</el-descriptions-item>
+              <el-descriptions-item label="备注">{{ port.remark }}</el-descriptions-item>
             </el-descriptions>
           </div>
         </template>
       </el-tab-pane>
     </el-tabs>
     <!-- 新增/编辑对话框 -->
-    <el-dialog
-      :title="dialogType === 'add' ? '新增港口' : '编辑港口'"
-      v-model="dialogVisible"
-      width="50%"
-    >
-      <el-form
-        ref="formRef"
-        :model="portForm"
-        :rules="rules"
-        label-width="120px"
-      >
+    <el-dialog :title="dialogType === 'add' ? '新增港口' : '编辑港口'" v-model="dialogVisible" width="50%">
+      <el-form ref="formRef" :model="portForm" :rules="rules" label-width="120px">
         <el-form-item label="港口名" prop="portName">
           <el-input v-model="portForm.portName" />
         </el-form-item>
@@ -300,66 +221,171 @@ import { ref, reactive, computed, nextTick, watch, onMounted, onUnmounted } from
 import { ElMessage, ElMessageBox } from 'element-plus'
 import * as echarts from 'echarts'
 
-// 初始数据
+// 添加标签页和折叠面板状态
+const activeTab = ref('statistics')
+const activeCollapse = ref(['charts'])
+
+// 添加统计数据
+const statistics = reactive({
+  total: 5,
+  berthTotal: 15,
+  berthAvailable: 12,
+  berthUsageRate: '80%',
+  berthMaintaining: 3,
+  todayBerthShip: 8
+})
+
+// 添加图表数据
+const chartData = reactive({
+  portNames: ['国能秦皇岛港', '国能曹妃甸港', '国能天津港', '国能上海港', '国能宁波港'],
+  berthCounts: [3, 4, 5, 3, 2],
+  berthTypePie: [
+    { value: 3, name: '煤炭泊位' },
+    { value: 4, name: '矿石泊位' },
+    { value: 5, name: '集装箱泊位' },
+    { value: 3, name: '液体化工泊位' },
+    { value: 2, name: '散杂货泊位' }
+  ]
+})
+
 const allPortList = ref([
   {
     id: 1,
-    portName: '秦皇岛港',
-    berthNo: '1',
+    portName: '国能秦皇岛港',
+    portCode: 'CNQHD',
+    berthNo: '01',
+    berthName: '1号煤炭泊位',
     channel: '秦皇岛主航道',
     draft: '15.5',
-    lakeType: '全潮',
+    lakeType: '海港',
     nightNav: '是',
     pilotage: '强制引航',
-    berthName: '201-212',
     frontDepth: '14.5',
     berthLength: '300',
-    berthWidth: '30',
-    shipCondition: '30万吨级',
-    machineCount: '4',
-    capacity: '2000',
+    berthWidth: '32',
+    shipCondition: '30万吨级散货船',
+    machineCount: '6',
+    capacity: '2500',
     shorePower: '已配备',
-    remark: '煤炭专用泊位'
+    remark: '国能集团主力煤炭中转港',
+    address: '河北省秦皇岛市海港区港口路1号',
+    manager: '国能集团秦皇岛港口有限公司',
+    buildYear: '1985',
+    facility: '自动化装卸系统、封闭式皮带廊道',
+    maxShip: '30万吨',
+    portType: '煤炭港',
+    company: '国能集团航运公司'
   },
   {
     id: 2,
-    portName: '上海港',
-    berthNo: '2',
-    channel: '洋山深水港区航道',
-    draft: '16.5',
-    lakeType: '全潮',
+    portName: '国能曹妃甸港',
+    portCode: 'CNTCD',
+    berthNo: '02',
+    berthName: '2号矿石泊位',
+    channel: '曹妃甸主航道',
+    draft: '18.0',
+    lakeType: '海港',
     nightNav: '是',
     pilotage: '强制引航',
-    berthName: '301-315',
-    frontDepth: '15.5',
+    frontDepth: '17.5',
     berthLength: '350',
-    berthWidth: '40',
-    shipCondition: '40万吨级',
-    machineCount: '6',
-    capacity: '3000',
+    berthWidth: '38',
+    shipCondition: '40万吨级矿石船',
+    machineCount: '8',
+    capacity: '3500',
     shorePower: '已配备',
-    remark: '集装箱专用泊位'
+    remark: '国能集团矿石进口主港',
+    address: '河北省唐山市曹妃甸区港口路88号',
+    manager: '国能集团曹妃甸港口有限公司',
+    buildYear: '2008',
+    facility: '高效卸船机、智能堆取料系统',
+    maxShip: '40万吨',
+    portType: '矿石港',
+    company: '国能集团航运公司'
   },
   {
     id: 3,
-    portName: '天津港',
-    berthNo: '3',
+    portName: '国能天津港',
+    portCode: 'CNTJG',
+    berthNo: '03',
+    berthName: '3号集装箱泊位',
     channel: '天津深水主航道',
-    draft: '15.0',
-    lakeType: '全潮',
+    draft: '16.0',
+    lakeType: '海港',
     nightNav: '是',
     pilotage: '强制引航',
-    berthName: '401-410',
-    frontDepth: '14.0',
-    berthLength: '280',
-    berthWidth: '25',
-    shipCondition: '25万吨级',
-    machineCount: '5',
-    capacity: '2500',
+    frontDepth: '15.0',
+    berthLength: '400',
+    berthWidth: '45',
+    shipCondition: '20万吨级集装箱船',
+    machineCount: '10',
+    capacity: '5000',
     shorePower: '已配备',
-    remark: '通用泊位'
+    remark: '国能集团集装箱业务枢纽',
+    address: '天津市滨海新区港口路66号',
+    manager: '国能集团天津港口有限公司',
+    buildYear: '1995',
+    facility: '自动化集装箱堆场、智能闸口',
+    maxShip: '20万吨',
+    portType: '集装箱港',
+    company: '国能集团航运公司'
+  },
+  {
+    id: 4,
+    portName: '国能上海港',
+    portCode: 'CNSHG',
+    berthNo: '04',
+    berthName: '4号液体化工泊位',
+    channel: '洋山深水港区航道',
+    draft: '17.0',
+    lakeType: '海港',
+    nightNav: '是',
+    pilotage: '强制引航',
+    frontDepth: '16.5',
+    berthLength: '320',
+    berthWidth: '36',
+    shipCondition: '15万吨级油船',
+    machineCount: '5',
+    capacity: '2000',
+    shorePower: '已配备',
+    remark: '国能集团液体化工品中转',
+    address: '上海市浦东新区港口大道188号',
+    manager: '国能集团上海港口有限公司',
+    buildYear: '2005',
+    facility: '液体化工管廊、应急防泄漏系统',
+    maxShip: '15万吨',
+    portType: '液体化工港',
+    company: '国能集团航运公司'
+  },
+  {
+    id: 5,
+    portName: '国能宁波港',
+    portCode: 'CNNGB',
+    berthNo: '05',
+    berthName: '5号散杂货泊位',
+    channel: '宁波主航道',
+    draft: '14.0',
+    lakeType: '海港',
+    nightNav: '是',
+    pilotage: '强制引航',
+    frontDepth: '13.5',
+    berthLength: '280',
+    berthWidth: '28',
+    shipCondition: '10万吨级散货船',
+    machineCount: '4',
+    capacity: '1500',
+    shorePower: '已配备',
+    remark: '国能集团南方煤炭中转',
+    address: '浙江省宁波市北仑区港口路168号',
+    manager: '国能集团宁波港口有限公司',
+    buildYear: '1990',
+    facility: '散货装卸机、封闭式传送带',
+    maxShip: '10万吨',
+    portType: '散杂货港',
+    company: '国能集团航运公司'
   }
 ])
+
 const currentPage = ref(1)
 const pageSize = ref(10)
 const portList = computed(() => {
@@ -381,69 +407,149 @@ function handleSearch() {
   )
   currentPage.value = 1
 }
+
 function resetSearch() {
   // 恢复初始数据
   allPortList.value = [
     {
       id: 1,
-      portName: '秦皇岛港',
-      berthNo: '1',
+      portName: '国能秦皇岛港',
+      portCode: 'CNQHD',
+      berthNo: '01',
+      berthName: '1号煤炭泊位',
       channel: '秦皇岛主航道',
       draft: '15.5',
-      lakeType: '全潮',
+      lakeType: '海港',
       nightNav: '是',
       pilotage: '强制引航',
-      berthName: '201-212',
       frontDepth: '14.5',
       berthLength: '300',
-      berthWidth: '30',
-      shipCondition: '30万吨级',
-      machineCount: '4',
-      capacity: '2000',
+      berthWidth: '32',
+      shipCondition: '30万吨级散货船',
+      machineCount: '6',
+      capacity: '2500',
       shorePower: '已配备',
-      remark: '煤炭专用泊位'
+      remark: '国能集团主力煤炭中转港',
+      address: '河北省秦皇岛市海港区港口路1号',
+      manager: '国能集团秦皇岛港口有限公司',
+      buildYear: '1985',
+      facility: '自动化装卸系统、封闭式皮带廊道',
+      maxShip: '30万吨',
+      portType: '煤炭港',
+      company: '国能集团航运公司'
     },
     {
       id: 2,
-      portName: '上海港',
-      berthNo: '2',
-      channel: '洋山深水港区航道',
-      draft: '16.5',
-      lakeType: '全潮',
+      portName: '国能曹妃甸港',
+      portCode: 'CNTCD',
+      berthNo: '02',
+      berthName: '2号矿石泊位',
+      channel: '曹妃甸主航道',
+      draft: '18.0',
+      lakeType: '海港',
       nightNav: '是',
       pilotage: '强制引航',
-      berthName: '301-315',
-      frontDepth: '15.5',
+      frontDepth: '17.5',
       berthLength: '350',
-      berthWidth: '40',
-      shipCondition: '40万吨级',
-      machineCount: '6',
-      capacity: '3000',
+      berthWidth: '38',
+      shipCondition: '40万吨级矿石船',
+      machineCount: '8',
+      capacity: '3500',
       shorePower: '已配备',
-      remark: '集装箱专用泊位'
+      remark: '国能集团矿石进口主港',
+      address: '河北省唐山市曹妃甸区港口路88号',
+      manager: '国能集团曹妃甸港口有限公司',
+      buildYear: '2008',
+      facility: '高效卸船机、智能堆取料系统',
+      maxShip: '40万吨',
+      portType: '矿石港',
+      company: '国能集团航运公司'
     },
     {
       id: 3,
-      portName: '天津港',
-      berthNo: '3',
+      portName: '国能天津港',
+      portCode: 'CNTJG',
+      berthNo: '03',
+      berthName: '3号集装箱泊位',
       channel: '天津深水主航道',
-      draft: '15.0',
-      lakeType: '全潮',
+      draft: '16.0',
+      lakeType: '海港',
       nightNav: '是',
       pilotage: '强制引航',
-      berthName: '401-410',
-      frontDepth: '14.0',
-      berthLength: '280',
-      berthWidth: '25',
-      shipCondition: '25万吨级',
-      machineCount: '5',
-      capacity: '2500',
+      frontDepth: '15.0',
+      berthLength: '400',
+      berthWidth: '45',
+      shipCondition: '20万吨级集装箱船',
+      machineCount: '10',
+      capacity: '5000',
       shorePower: '已配备',
-      remark: '通用泊位'
+      remark: '国能集团集装箱业务枢纽',
+      address: '天津市滨海新区港口路66号',
+      manager: '国能集团天津港口有限公司',
+      buildYear: '1995',
+      facility: '自动化集装箱堆场、智能闸口',
+      maxShip: '20万吨',
+      portType: '集装箱港',
+      company: '国能集团航运公司'
+    },
+    {
+      id: 4,
+      portName: '国能上海港',
+      portCode: 'CNSHG',
+      berthNo: '04',
+      berthName: '4号液体化工泊位',
+      channel: '洋山深水港区航道',
+      draft: '17.0',
+      lakeType: '海港',
+      nightNav: '是',
+      pilotage: '强制引航',
+      frontDepth: '16.5',
+      berthLength: '320',
+      berthWidth: '36',
+      shipCondition: '15万吨级油船',
+      machineCount: '5',
+      capacity: '2000',
+      shorePower: '已配备',
+      remark: '国能集团液体化工品中转',
+      address: '上海市浦东新区港口大道188号',
+      manager: '国能集团上海港口有限公司',
+      buildYear: '2005',
+      facility: '液体化工管廊、应急防泄漏系统',
+      maxShip: '15万吨',
+      portType: '液体化工港',
+      company: '国能集团航运公司'
+    },
+    {
+      id: 5,
+      portName: '国能宁波港',
+      portCode: 'CNNGB',
+      berthNo: '05',
+      berthName: '5号散杂货泊位',
+      channel: '宁波主航道',
+      draft: '14.0',
+      lakeType: '海港',
+      nightNav: '是',
+      pilotage: '强制引航',
+      frontDepth: '13.5',
+      berthLength: '280',
+      berthWidth: '28',
+      shipCondition: '10万吨级散货船',
+      machineCount: '4',
+      capacity: '1500',
+      shorePower: '已配备',
+      remark: '国能集团南方煤炭中转',
+      address: '浙江省宁波市北仑区港口路168号',
+      manager: '国能集团宁波港口有限公司',
+      buildYear: '1990',
+      facility: '散货装卸机、封闭式传送带',
+      maxShip: '10万吨',
+      portType: '散杂货港',
+      company: '国能集团航运公司'
     }
   ]
   currentPage.value = 1
 }
+
 const dialogVisible = ref(false)
 const dialogType = ref('add')
 const formRef = ref(null)
@@ -466,6 +572,7 @@ const portForm = reactive({
   shorePower: '',
   remark: ''
 })
+
 const rules = {
   portName: [{ required: true, message: '请输入港口名', trigger: 'blur' }],
   berthNo: [{ required: true, message: '请输入泊位号', trigger: 'blur' }],
@@ -483,6 +590,7 @@ const rules = {
   capacity: [{ required: true, message: '请输入装卸能力', trigger: 'blur' }],
   shorePower: [{ required: true, message: '请输入岸电情况', trigger: 'blur' }],
 }
+
 function handleAdd() {
   dialogType.value = 'add'
   Object.assign(portForm, {
@@ -506,14 +614,17 @@ function handleAdd() {
   })
   dialogVisible.value = true
 }
+
 function handleEdit(row) {
   dialogType.value = 'edit'
   Object.assign(portForm, row)
   dialogVisible.value = true
 }
+
 function handleView(row) {
   ElMessage.info(`查看港口泊位详情：${row.portName} - ${row.berthName}`)
 }
+
 function handleDelete(row) {
   ElMessageBox.confirm('确定要删除该泊位吗？', '提示', { type: 'warning' }).then(() => {
     const idx = allPortList.value.findIndex(item => item.id === row.id)
@@ -523,6 +634,7 @@ function handleDelete(row) {
     }
   })
 }
+
 function handleSubmit() {
   formRef.value.validate(valid => {
     if (valid) {
@@ -540,94 +652,44 @@ function handleSubmit() {
     }
   })
 }
+
 function handleExportExcel() {
   ElMessage.info('导出功能待实现，可用xlsx库实现')
 }
+
 function handleSizeChange(val) {
   pageSize.value = val
   currentPage.value = 1
 }
+
 function handleCurrentChange(val) {
   currentPage.value = val
 }
 
-// 静态模拟图表数据
-const chartData = {
-  usageTrend: [75, 72, 80, 85, 82, 74, 78],
-  portNames: ['黄骅港','秦皇岛港','天津港','上海港','宁波港'],
-  berthCounts: [14, 10, 19, 24, 17],
-  draftBins: ['<10米','10-12米','12-14米','14-16米','>16米'],
-  draftCounts: [6, 8, 11, 6, 3],
-  heatmap: [
-    // 3班*7天
-    [60, 62, 65, 70, 68, 66, 64], // 晚班
-    [55, 58, 60, 62, 61, 59, 57], // 中班
-    [50, 52, 54, 56, 55, 53, 51]  // 早班
-  ],
-  berthTypePie: [
-    { value: 12, name: '集装箱泊位' },
-    { value: 10, name: '散货泊位' },
-    { value: 8, name: '液体泊位' },
-    { value: 6, name: '杂货泊位' },
-    { value: 5, name: '滚装泊位' },
-    { value: 4, name: '其他泊位' }
-  ]
-}
+// 仪表盘统计卡片数据
+const dashboardCards = [
+  { title: '点赞', value: '56,023,936', trend: 30, color: 'blue' },
+  { title: '关注', value: '32,668', trend: 23, color: 'purple' },
+  { title: '收藏', value: '12,256,841', trend: 5, color: 'yellow' },
+  { title: '累计', value: '6,326,123', trend: -30, color: 'green' }
+]
 
-// 统计卡片数字由图表数据推算
-const statistics = computed(() => {
-  const berthTotal = chartData.berthCounts.reduce((a, b) => a + b, 0)
-  const berthAvailable = Math.max(...chartData.usageTrend.map(u => Math.round(berthTotal * u / 100)))
-  const berthUsageRate = Math.round(chartData.usageTrend.reduce((a, b) => a + b, 0) / chartData.usageTrend.length)
-  const berthMaintaining = chartData.heatmap[1][0] // 用中班周一模拟
-  const todayBerthShip = chartData.heatmap[0][6] // 用晚班周日模拟
-  return {
-    total: chartData.portNames.length,
-    berthTotal,
-    berthAvailable,
-    berthUsageRate,
-    berthMaintaining,
-    todayBerthShip
-  }
-})
-
-const activeTab = ref('statistics')
-const activeCollapse = ref(['charts'])
-const trendChartRef = ref(null)
-const berthCountChartRef = ref(null)
-const draftLimitChartRef = ref(null)
+// 图表ref
+const barChartRef = ref(null)
+const pieChartRef = ref(null)
+const mapChartRef = ref(null)
 const heatmapChartRef = ref(null)
-const berthTypePieChartRef = ref(null)
 
-let trendChart, berthCountChart, draftLimitChart, heatmapChart, berthTypePieChart
+let barChart, pieChart, mapChart, heatmapChart
 
 function renderCharts() {
-  // 1. 本周泊位使用率趋势（折线图）
-  if (trendChartRef.value) {
-    trendChart = echarts.init(trendChartRef.value)
-    trendChart.setOption({
-      title: { show: false },
-      tooltip: { trigger: 'axis' },
-      xAxis: { type: 'category', data: ['周一','周二','周三','周四','周五','周六','周日'] },
-      yAxis: { type: 'value', name: '使用率(%)', min: 0, max: 100 },
-      series: [{
-        data: chartData.usageTrend,
-        type: 'line',
-        smooth: true,
-        symbol: 'circle',
-        areaStyle: { opacity: 0.1 },
-        lineStyle: { width: 3 }
-      }]
-    })
-  }
-  // 2. 各港口泊位数量统计（柱状图）
-  if (berthCountChartRef.value) {
-    berthCountChart = echarts.init(berthCountChartRef.value)
-    berthCountChart.setOption({
-      title: { show: false },
+  // 1. 柱状图（港口吞吐量统计）
+  if (barChartRef.value) {
+    barChart = echarts.init(barChartRef.value)
+    barChart.setOption({
       tooltip: { trigger: 'axis' },
       xAxis: { type: 'category', data: chartData.portNames },
-      yAxis: { type: 'value', name: '泊位数量' },
+      yAxis: { type: 'value', name: '吞吐量(万吨)' },
       series: [{
         data: chartData.berthCounts,
         type: 'bar',
@@ -636,44 +698,63 @@ function renderCharts() {
       }]
     })
   }
-  // 3. 港口吃水限制分布（柱状图）
-  if (draftLimitChartRef.value) {
-    draftLimitChart = echarts.init(draftLimitChartRef.value)
-    draftLimitChart.setOption({
-      title: { show: false },
-      tooltip: { trigger: 'axis' },
-      xAxis: { type: 'category', data: chartData.draftBins },
-      yAxis: { type: 'value', name: '港口数量' },
+  // 2. 环形图（吞吐量统计）
+  if (pieChartRef.value) {
+    pieChart = echarts.init(pieChartRef.value)
+    pieChart.setOption({
+      tooltip: { trigger: 'item' },
+      legend: { left: 'center', bottom: 0 },
       series: [{
-        data: chartData.draftCounts,
-        type: 'bar',
-        itemStyle: { color: '#67C23A' },
-        barWidth: 30
+        name: '吞吐量',
+        type: 'pie',
+        radius: ['65%', '85%'],
+        avoidLabelOverlap: false,
+        label: { show: false },
+        emphasis: { label: { show: true, fontSize: 18, fontWeight: 'bold' } },
+        labelLine: { show: false },
+        data: chartData.berthTypePie
       }]
     })
   }
-  // 4. 泊位使用热力图
+  // 3. 分布条形图（港口分布）
+  if (mapChartRef.value) {
+    mapChart = echarts.init(mapChartRef.value)
+    mapChart.setOption({
+      tooltip: { trigger: 'axis' },
+      grid: { left: 40, right: 20, top: 30, bottom: 30 },
+      xAxis: { type: 'value', name: '数量' },
+      yAxis: { type: 'category', data: chartData.portNames, inverse: true },
+      series: [{
+        data: chartData.berthCounts,
+        type: 'bar',
+        barWidth: 18,
+        itemStyle: { color: '#67C23A' },
+        label: { show: true, position: 'right' }
+      }]
+    })
+  }
+  // 4. 热力图（在线活动）
   if (heatmapChartRef.value) {
     heatmapChart = echarts.init(heatmapChartRef.value)
-    const hours = ['周一','周二','周三','周四','周五','周六','周日']
-    const shifts = ['晚班','中班','早班']
+    const hours = Array.from({length: 7}, (_, i) => (i+1).toString())
+    const days = Array.from({length: 7}, (_, i) => (i+1).toString())
     const data = []
-    for (let i = 0; i < shifts.length; i++) {
-      for (let j = 0; j < hours.length; j++) {
-        data.push([j, i, chartData.heatmap[i][j]])
+    for (let i = 0; i < 7; i++) {
+      for (let j = 0; j < 7; j++) {
+        data.push([i, j, Math.floor(Math.random()*10000)])
       }
     }
     heatmapChart.setOption({
       tooltip: { position: 'top' },
-      grid: { height: '60%', top: '10%' },
+      grid: { height: '70%', top: '10%' },
       xAxis: { type: 'category', data: hours, splitArea: { show: true } },
-      yAxis: { type: 'category', data: shifts, splitArea: { show: true } },
+      yAxis: { type: 'category', data: days, splitArea: { show: true } },
       visualMap: {
-        min: 0, max: 100, calculable: true, orient: 'horizontal', left: 'center', top: 0,
-        inRange: { color: ['#fff7bc','#f03b20'] }
+        min: 0, max: 10000, calculable: true, orient: 'horizontal', left: 'center', top: 0,
+        inRange: { color: ['#e0f3ff','#409EFF'] }
       },
       series: [{
-        name: '使用率',
+        name: '在线活动',
         type: 'heatmap',
         data: data,
         label: { show: false },
@@ -681,32 +762,13 @@ function renderCharts() {
       }]
     })
   }
-  // 5. 靠类型泊位数量分布（饼图）
-  if (berthTypePieChartRef.value) {
-    berthTypePieChart = echarts.init(berthTypePieChartRef.value)
-    berthTypePieChart.setOption({
-      title: { show: false },
-      tooltip: { trigger: 'item' },
-      legend: { left: 'left', top: 'bottom' },
-      series: [{
-        name: '泊位类型',
-        type: 'pie',
-        radius: '60%',
-        data: chartData.berthTypePie,
-        emphasis: {
-          itemStyle: { shadowBlur: 10, shadowColor: 'rgba(0,0,0,0.3)' }
-        }
-      }]
-    })
-  }
 }
 
 function resizeCharts() {
-  trendChart?.resize()
-  berthCountChart?.resize()
-  draftLimitChart?.resize()
+  barChart?.resize()
+  pieChart?.resize()
+  mapChart?.resize()
   heatmapChart?.resize()
-  berthTypePieChart?.resize()
 }
 
 onMounted(() => {
@@ -715,9 +777,11 @@ onMounted(() => {
     window.addEventListener('resize', resizeCharts)
   })
 })
+
 onUnmounted(() => {
   window.removeEventListener('resize', resizeCharts)
 })
+
 watch(activeCollapse, (val) => {
   if (val.includes('charts')) nextTick(renderCharts)
 })
@@ -790,55 +854,27 @@ watch(allPortList, () => { nextTick(renderCharts) }, { deep: true })
   display: flex;
   gap: 10px;
   margin-bottom: 20px;
-  background: white;
-  padding: 20px;
-  border-radius: 4px;
-  box-shadow: 0 2px 12px 0 rgba(0,0,0,0.1);
-}
-.search-form {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  align-items: center;
-  width: 100%;
-}
-.search-item {
-  width: 260px;
 }
 .empty-detail {
   padding: 20px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 400px;
 }
 .port-detail-card {
   background: #fff;
   border-radius: 6px;
   padding: 20px;
   margin-bottom: 20px;
-  box-shadow: 0 2px 12px 0 rgba(0,0,0,0.1);
 }
 .detail-card-header {
   margin-bottom: 20px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
 }
 .detail-card-title {
   font-size: 18px;
   font-weight: bold;
-  margin: 0;
-  color: #303133;
+  margin-bottom: 10px;
 }
 .stats-container {
   display: flex;
-  flex-direction: column;
   gap: 20px;
-  background: white;
-  padding: 20px;
-  border-radius: 4px;
-  box-shadow: 0 2px 12px 0 rgba(0,0,0,0.1);
 }
 .chart-row {
   flex: 1;
@@ -859,7 +895,6 @@ watch(allPortList, () => { nextTick(renderCharts) }, { deep: true })
   border-radius: 8px;
   padding: 24px 24px 8px 24px;
   box-shadow: 0 2px 8px 0 rgba(0,0,0,0.04);
-  margin-bottom: 20px;
 }
 .chart-title {
   font-size: 16px;
@@ -872,53 +907,80 @@ watch(allPortList, () => { nextTick(renderCharts) }, { deep: true })
   height: 300px;
   min-height: 240px;
 }
-
-:deep(.el-collapse-item__header) {
-  font-size: 16px;
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  gap: 24px;
+  margin-top: 24px;
+}
+.dashboard-bar {
+  grid-row: 1 / 2;
+  grid-column: 1 / 2;
+  background: #fff;
+  border-radius: 8px;
+  padding: 24px 24px 8px 24px;
+  box-shadow: 0 2px 8px 0 rgba(0,0,0,0.04);
+}
+.dashboard-cards {
+  grid-row: 1 / 2;
+  grid-column: 2 / 3;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.dashboard-card {
+  background: #fff;
+  border-radius: 8px;
+  padding: 18px 20px;
+  box-shadow: 0 2px 8px 0 rgba(0,0,0,0.04);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+.card-title {
+  font-size: 14px;
+  color: #888;
+  margin-bottom: 8px;
+}
+.card-value {
+  font-size: 22px;
   font-weight: bold;
+  color: #333;
 }
-
-:deep(.el-collapse) {
-  border: none;
-  
-  .el-collapse-item__wrap {
-    border: none;
-  }
-  
-  .el-collapse-item__header {
-    border: none;
-    background-color: white;
-    margin-bottom: 10px;
-    border-radius: 4px;
-    padding: 0 20px;
-    height: 50px;
-    line-height: 50px;
-    box-shadow: 0 2px 12px 0 rgba(0,0,0,0.1);
-  }
-  
-  .el-collapse-item__content {
-    padding: 0;
-  }
+.card-trend {
+  font-size: 13px;
+  margin-top: 4px;
 }
-
-.collapse-title {
-  font-size: 16px;
-  font-weight: bold;
-  color: #303133;
+.card-trend.up { color: #67C23A; }
+.card-trend.down { color: #F56C6C; }
+.dashboard-card.blue { border-left: 4px solid #409EFF; }
+.dashboard-card.green { border-left: 4px solid #67C23A; }
+.dashboard-card.yellow { border-left: 4px solid #E6A23C; }
+.dashboard-card.purple { border-left: 4px solid #909399; }
+.dashboard-card.red { border-left: 4px solid #F56C6C; }
+.dashboard-pie {
+  grid-row: 2 / 3;
+  grid-column: 1 / 2;
+  background: #fff;
+  border-radius: 8px;
+  padding: 24px 24px 8px 24px;
+  box-shadow: 0 2px 8px 0 rgba(0,0,0,0.04);
 }
-
-:deep(.el-descriptions) {
-  margin-bottom: 20px;
+.dashboard-map {
+  grid-row: 2 / 3;
+  grid-column: 2 / 3;
+  background: #fff;
+  border-radius: 8px;
+  padding: 24px 24px 8px 24px;
+  box-shadow: 0 2px 8px 0 rgba(0,0,0,0.04);
 }
-
-:deep(.el-descriptions__title) {
-  font-size: 16px;
-  font-weight: bold;
-  color: #409EFF;
-  margin-bottom: 16px;
+.dashboard-heatmap {
+  grid-row: 2 / 3;
+  grid-column: 3 / 4;
+  background: #fff;
+  border-radius: 8px;
+  padding: 24px 24px 8px 24px;
+  box-shadow: 0 2px 8px 0 rgba(0,0,0,0.04);
 }
-
-:deep(.el-descriptions__label) {
-  font-weight: bold;
-}
-</style> 
+</style>

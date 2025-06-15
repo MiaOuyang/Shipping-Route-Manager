@@ -124,6 +124,11 @@ const USER_MENUS = [
         path: '/operation/foreign',
         title: '外贸运行图编制',
         component: '/operation/foreign'
+      },
+      {
+        path: '/operation/alert',
+        title: '预警信息',
+        component: '/operation/alert'
       }
     ]
   },
