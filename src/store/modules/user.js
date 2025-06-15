@@ -34,15 +34,16 @@ const USER_MENUS = [
         component: '/basic/ship'
       },
       {
+        path: '/basic/company',
+        title: '经营公司信息',
+        component: '/basic/company'
+      },
+      {
         path: '/basic/port',
         title: '港口泊位信息',
         component: '/basic/port'
       },
-      {
-        path: '/basic/route',
-        title: '航线信息',
-        component: '/basic/route'
-      },
+      
       {
         path: '/basic/cargo',
         title: '货种信息',
@@ -50,7 +51,7 @@ const USER_MENUS = [
       },
       {
         path: '/basic/customer',
-        title: '客商信息',
+        title: '用户信息',
         component: '/basic/customer'
       }
     ]
@@ -61,19 +62,14 @@ const USER_MENUS = [
     icon: 'setting-outlined',
     children: [
       {
-        path: '/config/ship-company-customer',
-        title: '船舶-经营公司-客户配置',
-        component: '/config/ship-company-customer'
-      },
-      {
         path: '/config/background',
         title: '运行图底图配置',
         component: '/config/background'
       },
       {
-        path: '/config/alert',
-        title: '预警分级与规则设置',
-        component: '/config/alert'
+        path: '/config/agi',
+        title: 'ai参数配置',
+        component: '/config/agi'
       }
     ]
   },
@@ -115,24 +111,19 @@ const USER_MENUS = [
     icon: 'CalendarOutlined',
     children: [
       {
-        path: '/operation/annual',
-        title: '年度运行图编制',
-        component: '/operation/annual'
-      },
-      {
-        path: '/operation/monthly',
-        title: '月度运行图绘制与调度调整',
-        component: '/operation/monthly'
+        path: '/operation/sea',
+        title: '海运运行图编制',
+        component: '/operation/sea'
       },
       {
         path: '/operation/river',
-        title: '江运运行图绘制',
+        title: '江运运行图编制',
         component: '/operation/river'
       },
       {
-        path: '/operation/agi',
-        title: '智能运行图编制',
-        component: '/operation/agi'
+        path: '/operation/foreign',
+        title: '外贸运行图编制',
+        component: '/operation/foreign'
       }
     ]
   },

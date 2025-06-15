@@ -6,8 +6,11 @@
         <div class="ele-card">
           <div class="ele-card-body">
             <!-- 绘图选项区域 -->
-            <div class="d-flex flex-wrap align-items-end mb-3" style="gap: 20px; min-width:0;">
-              <div style="flex: 1 1 200px; min-width: 200px; max-width: 260px;">
+            <div
+              class="d-flex flex-wrap align-items-end mb-3"
+              style="gap: 20px; min-width: 0"
+            >
+              <div style="flex: 1 1 200px; min-width: 200px; max-width: 260px">
                 <div class="form-group">
                   <label>类型:</label>
                   <el-select
@@ -20,7 +23,7 @@
                   </el-select>
                 </div>
               </div>
-              <div style="flex: 1 1 200px; min-width: 200px; max-width: 260px;">
+              <div style="flex: 1 1 200px; min-width: 200px; max-width: 260px">
                 <div class="form-group">
                   <label>年份:</label>
                   <el-date-picker
@@ -30,7 +33,7 @@
                   />
                 </div>
               </div>
-              <div style="flex: 1 1 200px; min-width: 200px; max-width: 260px;">
+              <div style="flex: 1 1 200px; min-width: 200px; max-width: 260px">
                 <div class="form-group">
                   <label>季度:</label>
                   <el-select
