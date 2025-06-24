@@ -4,14 +4,31 @@
       <template #header>
         <div class="card-header">
           <span>年度计划运量表</span>
-          <el-button
-            v-if="loadError"
-            type="primary"
-            size="small"
-            @click="readExcelFile"
-          >
-            重新加载数据
-          </el-button>
+          <div style="display: flex; align-items: center">
+            <el-select
+              v-model="searchYear"
+              placeholder="请选择年份"
+              style="width: 160px"
+              clearable
+              @change="readExcelFile"
+            >
+              <el-option
+                v-for="item in yearOptions"
+                :key="item"
+                :label="item"
+                :value="item"
+              />
+            </el-select>
+            <el-button
+              v-if="loadError"
+              type="primary"
+              size="small"
+              @click="readExcelFile()"
+              style="margin-left: 10px"
+            >
+              重新加载数据
+            </el-button>
+          </div>
         </div>
       </template>
       <ele-pro-table
@@ -52,6 +69,12 @@ const columns = ref([]);
 const loading = ref(false);
 // 加载错误状态
 const loadError = ref(false);
+// 搜索年份
+const searchYear = ref('');
+// 存储整个工作簿的数据
+const workbookData = ref(null);
+// 年份选项
+const yearOptions = ref([]);
 
 // 初始化默认表头
 const initDefaultColumns = () => {
@@ -66,32 +89,54 @@ const initDefaultColumns = () => {
 };
 
 // 读取Excel文件
-const readExcelFile = async () => {
+const readExcelFile = async (year) => {
   loading.value = true;
   loadError.value = false;
-  
-  // 添加调试信息
-  console.log('开始加载Excel文件: /data/运量表.xlsx');
-  
+
   try {
-    // 修改为绝对路径
-    const response = await fetch('/data/运量表.xlsx');
-    console.log('文件请求状态:', response.status, response.statusText);
-    
-    const arrayBuffer = await response.arrayBuffer();
-    console.log('文件读取成功, 大小:', arrayBuffer.byteLength, '字节');
-    
-    const workbook = XLSX.read(arrayBuffer, { type: 'array' });
-    console.log('Excel解析成功, 工作表:', workbook.SheetNames);
-    
-    // 获取第一个工作表
-    const sheetName = workbook.SheetNames[0];
-    const worksheet = workbook.Sheets[sheetName];
-    
+    // 仅在首次加载时获取文件
+    if (!workbookData.value) {
+      const response = await fetch('/data/运量表.xlsx');
+      if (!response.ok) {
+        throw new Error(`文件加载失败: ${response.statusText}`);
+      }
+      const arrayBuffer = await response.arrayBuffer();
+      workbookData.value = XLSX.read(arrayBuffer, { type: 'array' });
+      // 首次加载时，填充年份选项
+      yearOptions.value = workbookData.value.SheetNames;
+    }
+
+    const workbook = workbookData.value;
+    // 如果没有指定年份(比如初始加载)，默认使用第一个工作表名
+    const sheetNameToLoad = year === undefined ? workbook.SheetNames[0] : year;
+
+    // 如果用户清空了选择（year 为 ''），则清空表格
+    if (!sheetNameToLoad) {
+      tableData.value = [];
+      initDefaultColumns();
+      searchYear.value = '';
+      loading.value = false;
+      return;
+    }
+
+    // 检查工作表是否存在
+    if (!workbook.SheetNames.includes(sheetNameToLoad)) {
+      ElMessage.warning(`未找到年份为 "${sheetNameToLoad}" 的数据表`);
+      // 如果工作表不存在，清空表格
+      tableData.value = [];
+      initDefaultColumns();
+      loading.value = false;
+      return;
+    }
+
+    // 更新当前选中的年份
+    searchYear.value = sheetNameToLoad;
+
+    const worksheet = workbook.Sheets[sheetNameToLoad];
+
     // 将工作表转换为JSON数据
     const json = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
-    console.log('数据转换成功, 行数:', json.length, '条目数据示例:', json[0]);
-    
+
     if (json.length > 0) {
       // 提取表头作为列配置
       columns.value = json[0].map((header) => ({
@@ -100,7 +145,7 @@ const readExcelFile = async () => {
         align: 'center',
         minWidth: 120
       }));
-      
+
       // 转换数据格式
       tableData.value = json.slice(1).map((row, index) => {
         const item = { id: index + 1 };
@@ -109,21 +154,22 @@ const readExcelFile = async () => {
         });
         return item;
       });
-      
-      ElMessage.success('数据加载成功');
+
+      ElMessage.success(`"${sheetNameToLoad}"年数据加载成功`);
     } else {
       // 如果Excel文件中没有数据，使用默认表头并清空数据
       initDefaultColumns();
       tableData.value = [];
-      ElMessage.warning('Excel文件中没有数据');
+      ElMessage.warning('Excel工作表中没有数据');
     }
   } catch (error) {
     console.error('读取Excel文件失败, 详细错误:', error);
     // 加载失败时，设置错误状态，使用默认表头并清空数据
     loadError.value = true;
+    workbookData.value = null; // 清除缓存，以便重新加载
     initDefaultColumns();
     tableData.value = [];
-    ElMessage.error('读取Excel文件失败，请检查文件路径是否正确');
+    ElMessage.error('读取Excel文件失败，请检查文件或网络连接');
   } finally {
     loading.value = false;
   }

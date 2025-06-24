@@ -24,6 +24,10 @@
           <span>&nbsp;项数据&emsp;</span>
           <span>其中冻结状态的用户有 </span>
           <b>{{ selections.filter((d) => d.status === 1).length }} 个 &emsp;</b>
+          <span>船公司管理员有 </span>
+          <b>{{ selections.filter((d) => d.roles.some(r => r.roleName === '船公司管理员')).length }} 个 &emsp;</b>
+          <span>物流管理员有 </span>
+          <b>{{ selections.filter((d) => d.roles.some(r => r.roleName === '物流管理员')).length }} 个 &emsp;</b>
           <el-link
             type="primary"
             :underline="false"
@@ -277,9 +281,8 @@
       {
         columnKey: 'roles',
         label: t('list.basic.table.roles'),
-        minWidth: 110,
+        minWidth: 150,
         slot: 'roles',
-        hideInTable: true,
         formatter: (row) => row.roles.map((d) => d.roleName).join(',')
       },
       {
@@ -293,15 +296,13 @@
         label: t('list.basic.table.phone'),
         minWidth: 120,
         align: 'center',
-        sortable: 'custom',
-        hideInTable: true
+        sortable: 'custom'
       },
       {
         prop: 'email',
         label: t('list.basic.table.email'),
-        minWidth: 120,
-        sortable: 'custom',
-        hideInTable: true
+        minWidth: 150,
+        sortable: 'custom'
       },
       {
         columnKey: 'sex',
@@ -368,7 +369,440 @@
 
   /** 表格数据源 */
   const datasource = ({ pages, where, orders, filters }) => {
-    return pageUsers({ ...where, ...orders, ...filters, ...pages });
+    return pageUsersMock({ ...where, ...orders, ...filters, ...pages });
+  };
+
+  /** 模拟用户数据 */
+  const mockUsers = [
+    {
+      userId: 1,
+      username: 'admin',
+      nickname: '系统管理员',
+      avatar: '',
+      roles: [{ roleId: 1, roleName: '超级管理员' }],
+      organizationName: '航运管理系统',
+      phone: '13800138000',
+      email: 'admin@shipping.com',
+      sex: '1',
+      sexName: '男',
+      createTime: '2023-01-01 00:00:00',
+      status: 0
+    },
+    // 国能远海航运有限公司
+    {
+      userId: 2,
+      username: 'wang.chunyi',
+      nickname: '王春毅',
+      avatar: '',
+      roles: [{ roleId: 2, roleName: '船公司管理员' }],
+      organizationName: '国能远海航运有限公司',
+      phone: '010-57595164',
+      email: '20069030@ceic.com',
+      sex: '1',
+      sexName: '男',
+      createTime: '2024-01-01 09:00:00',
+      status: 0
+    },
+    // 国能（天津）航运有限公司
+    {
+      userId: 3,
+      username: 'duan.pengfei',
+      nickname: '段鹏飞',
+      avatar: '',
+      roles: [{ roleId: 2, roleName: '船公司管理员' }],
+      organizationName: '国能（天津）航运有限公司',
+      phone: '',
+      email: '',
+      sex: '1',
+      sexName: '男',
+      createTime: '2024-09-20 09:00:00',
+      status: 0
+    },
+    // 天津国能海运有限公司
+    {
+      userId: 4,
+      username: 'le.zailong',
+      nickname: '乐再龙',
+      avatar: '',
+      roles: [{ roleId: 2, roleName: '船公司管理员' }],
+      organizationName: '天津国能海运有限公司',
+      phone: '022-23195001',
+      email: 'P0001699@chnenergy.com',
+      sex: '1',
+      sexName: '男',
+      createTime: '2024-06-20 09:00:00',
+      status: 0
+    },
+    // 国能（武汉）航运有限公司
+    {
+      userId: 5,
+      username: 'xin.jie',
+      nickname: '辛洁',
+      avatar: '',
+      roles: [{ roleId: 2, roleName: '船公司管理员' }],
+      organizationName: '国能（武汉）航运有限公司',
+      phone: '18696122716',
+      email: '12345@163.com',
+      sex: '2',
+      sexName: '女',
+      createTime: '2024-03-28 09:00:00',
+      status: 0
+    },
+    // 国能香港远洋运输有限公司（示例，因无具体负责人信息，暂用英文名）
+    {
+      userId: 6,
+      username: 'hk.manager',
+      nickname: '香港远洋负责人',
+      avatar: '',
+      roles: [{ roleId: 2, roleName: '船公司管理员' }],
+      organizationName: '国能香港远洋运输有限公司',
+      phone: '',
+      email: '',
+      sex: '1',
+      sexName: '男',
+      createTime: '2024-11-28 09:00:00',
+      status: 0
+    },
+    {
+      userId: 7,
+      username: 'zhang.ming',
+      nickname: '张明',
+      avatar: '',
+      roles: [{ roleId: 2, roleName: '船公司管理员' }],
+      organizationName: '中远海运集装箱运输有限公司',
+      phone: '13812345678',
+      email: 'zhang.ming@coscoshipping.com',
+      sex: '1',
+      sexName: '男',
+      createTime: '2023-02-15 09:30:00',
+      status: 0
+    },
+    {
+      userId: 8,
+      username: 'li.qiang',
+      nickname: '李强',
+      avatar: '',
+      roles: [{ roleId: 3, roleName: '物流管理员' }],
+      organizationName: '中远海运物流有限公司',
+      phone: '021-23456789',
+      email: 'li.qiang@cosco-logistics.com',
+      sex: '1',
+      sexName: '男',
+      createTime: '2023-03-10 14:20:00',
+      status: 0
+    },
+    {
+      userId: 9,
+      username: 'wang.fang',
+      nickname: '王芳',
+      avatar: '',
+      roles: [{ roleId: 4, roleName: '货代管理员' }],
+      organizationName: '上海远洋国际货运代理有限公司',
+      phone: '13765432109',
+      email: 'wang.fang@shipping-agent.cn',
+      sex: '2',
+      sexName: '女',
+      createTime: '2023-04-05 11:15:00',
+      status: 0
+    },
+    {
+      userId: 10,
+      username: 'john.smith',
+      nickname: 'John Smith',
+      avatar: '',
+      roles: [{ roleId: 2, roleName: '船公司管理员' }],
+      organizationName: '马士基航运有限公司',
+      phone: '13987654321',
+      email: 'john.smith@maersk.com.cn',
+      sex: '1',
+      sexName: '男',
+      createTime: '2023-05-20 16:45:00',
+      status: 0
+    },
+    {
+      userId: 11,
+      username: 'marco.rossi',
+      nickname: 'Marco Rossi',
+      avatar: '',
+      roles: [{ roleId: 2, roleName: '船公司管理员' }],
+      organizationName: '地中海航运（上海）有限公司',
+      phone: '021-45678901',
+      email: 'marco.rossi@msc-china.com',
+      sex: '1',
+      sexName: '男',
+      createTime: '2023-06-12 10:30:00',
+      status: 1
+    },
+    {
+      userId: 12,
+      username: 'pierre.martin',
+      nickname: 'Pierre Martin',
+      avatar: '',
+      roles: [{ roleId: 2, roleName: '船公司管理员' }],
+      organizationName: '达飞轮船（中国）有限公司',
+      phone: '13678901234',
+      email: 'pierre.martin@cma-cgm.cn',
+      sex: '1',
+      sexName: '男',
+      createTime: '2023-07-08 13:20:00',
+      status: 0
+    },
+    {
+      userId: 13,
+      username: 'chen.zm',
+      nickname: '陈志明',
+      avatar: '',
+      roles: [{ roleId: 2, roleName: '船公司管理员' }],
+      organizationName: '长荣海运股份有限公司上海分公司',
+      phone: '13567890123',
+      email: 'chen.zm@evergreen.com.cn',
+      sex: '1',
+      sexName: '男',
+      createTime: '2023-08-15 15:10:00',
+      status: 0
+    },
+    {
+      userId: 14,
+      username: 'liu.wei',
+      nickname: '刘伟',
+      avatar: '',
+      roles: [{ roleId: 3, roleName: '物流管理员' }],
+      organizationName: '上海锦程国际物流有限公司',
+      phone: '021-78901234',
+      email: 'liu.wei@jc-logistics.cn',
+      sex: '1',
+      sexName: '男',
+      createTime: '2023-09-22 09:45:00',
+      status: 0
+    },
+    {
+      userId: 15,
+      username: 'zhang.hh',
+      nickname: '张海华',
+      avatar: '',
+      roles: [{ roleId: 4, roleName: '货代管理员' }],
+      organizationName: '上海海华国际货运代理有限公司',
+      phone: '13456789012',
+      email: 'zhang.hh@haihua-shipping.com',
+      sex: '1',
+      sexName: '男',
+      createTime: '2023-10-18 14:30:00',
+      status: 0
+    },
+    {
+      userId: 16,
+      username: 'hans.schmidt',
+      nickname: 'Hans Schmidt',
+      avatar: '',
+      roles: [{ roleId: 2, roleName: '船公司管理员' }],
+      organizationName: '赫伯罗特船务（中国）有限公司',
+      phone: '021-90123456',
+      email: 'hans.schmidt@hpl-china.com',
+      sex: '1',
+      sexName: '男',
+      createTime: '2023-11-05 11:20:00',
+      status: 0
+    },
+    {
+      userId: 17,
+      username: 'wang.yh',
+      nickname: '王远航',
+      avatar: '',
+      roles: [{ roleId: 2, roleName: '船公司管理员' }],
+      organizationName: '上海远洋运输有限公司',
+      phone: '13345678901',
+      email: 'wang.yh@cosco-shipping.cn',
+      sex: '1',
+      sexName: '男',
+      createTime: '2023-12-01 16:15:00',
+      status: 1
+    },
+    {
+      userId: 18,
+      username: 'li.gs',
+      nickname: '李港生',
+      avatar: '',
+      roles: [{ roleId: 4, roleName: '货代管理员' }],
+      organizationName: '上海港国际货运有限公司',
+      phone: '13234567890',
+      email: 'li.gs@port-logistics.com.cn',
+      sex: '1',
+      sexName: '男',
+      createTime: '2024-01-10 10:30:00',
+      status: 0
+    },
+    {
+      userId: 19,
+      username: 'zhao.yd',
+      nickname: '赵运达',
+      avatar: '',
+      roles: [{ roleId: 3, roleName: '物流管理员' }],
+      organizationName: '上海中外运物流有限公司',
+      phone: '021-23456701',
+      email: 'zhao.yd@sinotrans-logistics.cn',
+      sex: '1',
+      sexName: '男',
+      createTime: '2024-02-14 13:45:00',
+      status: 0
+    },
+    {
+      userId: 20,
+      username: 'lin.ym',
+      nickname: '林阳明',
+      avatar: '',
+      roles: [{ roleId: 2, roleName: '船公司管理员' }],
+      organizationName: '阳明海运股份有限公司上海分公司',
+      phone: '13123456789',
+      email: 'lin.ym@yangming.com.cn',
+      sex: '1',
+      sexName: '男',
+      createTime: '2024-03-08 15:20:00',
+      status: 0
+    },
+    {
+      userId: 21,
+      username: 'zhou.ht',
+      nickname: '周海通',
+      avatar: '',
+      roles: [{ roleId: 3, roleName: '物流管理员' }],
+      organizationName: '上海海通国际物流有限公司',
+      phone: '13012345678',
+      email: 'zhou.ht@haitong-logistics.cn',
+      sex: '1',
+      sexName: '男',
+      createTime: '2024-04-12 09:10:00',
+      status: 0
+    },
+    {
+      userId: 22,
+      username: 'li.jing',
+      nickname: '李静',
+      avatar: '',
+      roles: [{ roleId: 5, roleName: '客服专员' }],
+      organizationName: '航运管理系统',
+      phone: '13800138001',
+      email: 'li.jing@shipping.com',
+      sex: '2',
+      sexName: '女',
+      createTime: '2024-05-20 14:30:00',
+      status: 0
+    },
+    {
+      userId: 23,
+      username: 'zhang.wei',
+      nickname: '张伟',
+      avatar: '',
+      roles: [{ roleId: 6, roleName: '财务专员' }],
+      organizationName: '航运管理系统',
+      phone: '13800138002',
+      email: 'zhang.wei@shipping.com',
+      sex: '1',
+      sexName: '男',
+      createTime: '2024-06-15 11:45:00',
+      status: 0
+    },
+    {
+      userId: 24,
+      username: 'wang.li',
+      nickname: '王丽',
+      avatar: '',
+      roles: [{ roleId: 7, roleName: '运营专员' }],
+      organizationName: '航运管理系统',
+      phone: '13800138003',
+      email: 'wang.li@shipping.com',
+      sex: '2',
+      sexName: '女',
+      createTime: '2024-07-10 16:20:00',
+      status: 0
+    },
+    {
+      userId: 25,
+      username: 'chen.gang',
+      nickname: '陈刚',
+      avatar: '',
+      roles: [{ roleId: 8, roleName: '技术专员' }],
+      organizationName: '航运管理系统',
+      phone: '13800138004',
+      email: 'chen.gang@shipping.com',
+      sex: '1',
+      sexName: '男',
+      createTime: '2024-08-05 10:15:00',
+      status: 0
+    }
+  ];
+
+  /** 分页查询用户列表（模拟） */
+  const pageUsersMock = ({ page = 1, size = 10, where = {}, orders = {}, filters = {} }) => {
+    return new Promise((resolve) => {
+      // 模拟后端分页查询
+      let data = [...mockUsers];
+      
+      // 处理搜索条件
+      if (where.username) {
+        data = data.filter(item => item.username.includes(where.username));
+      }
+      if (where.nickname) {
+        data = data.filter(item => item.nickname.includes(where.nickname));
+      }
+      if (where.organizationName) {
+        data = data.filter(item => item.organizationName.includes(where.organizationName));
+      }
+      if (where.phone) {
+        data = data.filter(item => item.phone.includes(where.phone));
+      }
+      if (where.email) {
+        data = data.filter(item => item.email.includes(where.email));
+      }
+      if (where.createTimeStart) {
+        data = data.filter(item => item.createTime >= where.createTimeStart);
+      }
+      if (where.createTimeEnd) {
+        data = data.filter(item => item.createTime <= where.createTimeEnd);
+      }
+      if (where.status !== undefined) {
+        data = data.filter(item => item.status === where.status);
+      }
+      
+      // 处理排序
+      if (orders.prop) {
+        data.sort((a, b) => {
+          const valueA = a[orders.prop];
+          const valueB = b[orders.prop];
+          return orders.order === 'ascending' ? 
+            (valueA > valueB ? 1 : -1) : 
+            (valueA < valueB ? 1 : -1);
+        });
+      }
+      
+      // 处理筛选
+      if (filters.sex) {
+        data = data.filter(item => filters.sex.includes(item.sex));
+      }
+      if (filters.status) {
+        data = data.filter(item => filters.status.includes(String(item.status)));
+      }
+      
+      // 分页
+      const start = (page - 1) * size;
+      const end = start + size;
+      const list = data.slice(start, end);
+      
+      resolve({
+        list,
+        total: data.length,
+        page,
+        size
+      });
+    });
+  };
+
+  /** 获取所有用户列表（用于导出） */
+  const listUsersMock = ({ where = {}, orders = {}, filters = {} }) => {
+    return new Promise((resolve) => {
+      // 复用分页查询的逻辑，但不进行分页
+      pageUsersMock({ page: 1, size: 999999, where, orders, filters })
+        .then(res => resolve(res.list));
+    });
   };
 
   /** 表格数据请求完成事件 */
@@ -412,7 +846,7 @@
 
   /** 删除 */
   const remove = (row) => {
-    ElMessageBox.confirm(`确定要删除“${row.username}”吗?`, '系统提示', {
+    ElMessageBox.confirm(`确定要删除"${row.username}"吗?`, '系统提示', {
       type: 'warning',
       draggable: true
     })
@@ -453,7 +887,7 @@
 
   /** 导出和打印全部数据的数据源 */
   const exportSource = ({ where, orders, filters }) => {
-    return listUsers({ ...where, ...orders, ...filters });
+    return listUsersMock({ ...where, ...orders, ...filters });
   };
 
   /** 导出配置 */

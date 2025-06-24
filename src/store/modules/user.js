@@ -63,8 +63,13 @@ const USER_MENUS = [
     children: [
       {
         path: '/config/background',
-        title: '运行图底图配置',
+        title: '年度运行图底图配置',
         component: '/config/background'
+      },
+      {
+        path: '/config/background-month',
+        title: '月度运行图底图配置',
+        component: '/config/background-month'
       },
       {
         path: '/config/agi',
@@ -153,7 +158,7 @@ const USER_MENUS = [
         component: '/evaluation/ship'
       }
     ]
-  },
+  },/*
   // 原有系统菜单
   {
     path: '/system',
@@ -370,7 +375,7 @@ const USER_MENUS = [
         component: '/user/message'
       }
     ]
-  }
+  }*/
 ];
 
 export const useUserStore = defineStore('user', {

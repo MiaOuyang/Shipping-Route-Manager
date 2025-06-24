@@ -12,14 +12,18 @@
         </el-col>
         <el-col :sm="8" :xs="24">
           <div class="stat-box">
-            <ele-text type="placeholder">租船总艘数</ele-text>
-            <ele-text size="xl" style="margin-top:6px">{{ totalShips }} 艘</ele-text>
+            <ele-text type="placeholder">租船总数</ele-text>
+            <ele-text size="xl" style="margin-top:6px"
+              >{{ totalCharterCount }} 艘</ele-text
+            >
           </div>
         </el-col>
         <el-col :sm="8" :xs="24">
           <div class="stat-box">
-            <ele-text type="placeholder">租船总航次</ele-text>
-            <ele-text size="xl" style="margin-top:6px">{{ totalVoyages }} 次</ele-text>
+            <ele-text type="placeholder">租船总运力</ele-text>
+            <ele-text size="xl" style="margin-top:6px"
+              >{{ totalDWT }} 万吨</ele-text
+            >
           </div>
         </el-col>
       </el-row>
@@ -29,10 +33,70 @@
     <ele-card>
       <ele-toolbar title="年度租船计划" :title-props="{ size: 'md' }">
         <template #tools>
-          <el-select v-model="filterYear" placeholder="年份" style="width: 100px" @change="applyFilter">
-            <el-option v-for="y in yearOptions" :key="y" :value="y" :label="y" />
+          <span style="margin-right: 8px">年份:</span>
+          <el-select
+            v-model="filterYear"
+            placeholder="请选择年份"
+            style="width: 120px"
+            clearable
+            @change="applyFilter"
+          >
+            <el-option
+              v-for="y in yearOptions"
+              :key="y"
+              :value="y"
+              :label="y"
+            />
           </el-select>
-          <el-button type="primary" size="small" style="margin-left:12px" @click="readExcelFile">刷新</el-button>
+          <span style="margin-left: 12px; margin-right: 8px">公司:</span>
+          <el-select
+            v-model="filterCompany"
+            placeholder="公司"
+            style="width: 140px"
+            clearable
+          >
+            <el-option
+              v-for="c in companyOptions"
+              :key="c"
+              :label="c"
+              :value="c"
+            />
+          </el-select>
+          <span style="margin-left: 12px; margin-right: 8px">船型:</span>
+          <el-select
+            v-model="filterShipType"
+            placeholder="船型"
+            style="width: 120px"
+            clearable
+          >
+            <el-option
+              v-for="s in shipTypeOptions"
+              :key="s"
+              :label="s"
+              :value="s"
+            />
+          </el-select>
+          <span style="margin-left: 12px; margin-right: 8px">租期:</span>
+          <el-select
+            v-model="filterCharterPeriod"
+            placeholder="租期"
+            style="width: 120px"
+            clearable
+          >
+            <el-option
+              v-for="p in charterPeriodOptions"
+              :key="p"
+              :label="p"
+              :value="p"
+            />
+          </el-select>
+          <el-button
+            type="primary"
+            size="small"
+            style="margin-left: 12px"
+            @click="refreshData"
+            >刷新</el-button
+          >
         </template>
       </ele-toolbar>
 
@@ -41,7 +105,7 @@
         :datasource="filteredData"
         :loading="loading"
         row-key="序号"
-        style="width:100%"
+        style="width: 100%"
         height="auto"
       >
         <template #empty>
@@ -64,23 +128,56 @@ const rawData   = ref([]);          // Excel 原始数据
 const columns   = ref([]);          // 表头
 const loading   = ref(false);
 const loadError = ref(false);
+const workbookData = ref(null);
 
 /* 过滤条件 */
-const filterYear  = ref('全部');
+const filterYear = ref('');
 const yearOptions = ref([]);
+const filterCompany = ref('');
+const companyOptions = ref([]);
+const filterShipType = ref('');
+const shipTypeOptions = ref([]);
+const filterCharterPeriod = ref('');
+const charterPeriodOptions = ref([]);
 
 /* 过滤后的数据 */
 const filteredData = computed(() => {
-  return rawData.value.filter(r => {
-    if (filterYear.value !== '全部' && String(r.年份) !== String(filterYear.value)) return false;
+  return rawData.value.filter((r) => {
+    if (
+      filterCompany.value &&
+      filterCompany.value !== '全部' &&
+      r.公司 !== filterCompany.value
+    ) {
+      return false;
+    }
+    if (
+      filterShipType.value &&
+      filterShipType.value !== '全部' &&
+      r.船型 !== filterShipType.value
+    ) {
+      return false;
+    }
+    if (
+      filterCharterPeriod.value &&
+      filterCharterPeriod.value !== '全部' &&
+      r.租期 !== filterCharterPeriod.value
+    ) {
+      return false;
+    }
     return true;
   });
 });
 
 /* 统计指标 */
-const companyCount = computed(() => new Set(rawData.value.map(r => r.公司)).size);
-const totalShips   = computed(() => filteredData.value.reduce((s, r) => s + Number(r['租船数量'] || 0), 0));
-const totalVoyages = computed(() => filteredData.value.reduce((s, r) => s + Number(r['租船航次'] || 0), 0));
+const companyCount = computed(() => new Set(rawData.value.map((r) => r.公司)).size);
+const totalCharterCount = computed(() => filteredData.value.length);
+const totalDWT = computed(() =>
+  filteredData.value.reduce((sum, row) => {
+    // 从 "3万吨" 这样的字符串中提取数字
+    const tonnage = parseInt(row['船型']) || 0;
+    return sum + tonnage;
+  }, 0)
+);
 
 /* 默认表头 */
 function initDefaultColumns () {
@@ -94,46 +191,115 @@ function initDefaultColumns () {
 }
 
 /* 读取 Excel */
-async function readExcelFile () {
+async function readExcelFile(year) {
   loading.value = true;
   loadError.value = false;
   try {
-    const res = await fetch('/data/租船计划.xlsx');
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const wb = XLSX.read(await res.arrayBuffer(), { type: 'array' });
-    const sheet = wb.Sheets[wb.SheetNames[0]];
-    const json  = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+    // 仅在首次加载时获取文件
+    if (!workbookData.value) {
+      const res = await fetch('/data/租船计划.xlsx');
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const wb = XLSX.read(await res.arrayBuffer(), { type: 'array' });
+      workbookData.value = wb;
+      // 首次加载时，填充年份选项
+      yearOptions.value = wb.SheetNames;
+    }
 
-    if (!json.length) throw new Error('空工作表');
+    const workbook = workbookData.value;
+    // 如果没有指定年份(比如初始加载)，默认使用第一个工作表名
+    const sheetNameToLoad = year === undefined ? workbook.SheetNames[0] : year;
 
-    // 列头
-    columns.value = json[0].map((h, i) => ({ prop: h || `COL_${i}`, label: h || `COL_${i}`, minWidth: 100, align: 'center' }));
+    // 如果用户清空了选择（year 为 ''），则清空表格
+    if (!sheetNameToLoad) {
+      rawData.value = [];
+      initDefaultColumns();
+      filterYear.value = '';
+      // 清空筛选选项
+      companyOptions.value = [];
+      shipTypeOptions.value = [];
+      charterPeriodOptions.value = [];
+      loading.value = false;
+      return;
+    }
 
-    // 数据
-    rawData.value = json.slice(1).map((row, idx) => {
-      const obj = { id: idx + 1 };
-      json[0].forEach((h, i) => { obj[h] = row[i]; });
-      return obj;
-    });
+    // 检查工作表是否存在
+    if (!workbook.SheetNames.includes(sheetNameToLoad)) {
+      ElMessage.warning(`未找到年份为 "${sheetNameToLoad}" 的数据表`);
+      rawData.value = [];
+      initDefaultColumns();
+      loading.value = false;
+      return;
+    }
 
-    // 年份选项
-    yearOptions.value = Array.from(new Set(rawData.value.map(r => r.年份)));
-    yearOptions.value.unshift('全部');
+    filterYear.value = sheetNameToLoad;
 
-    ElMessage.success('数据加载成功');
+    const sheet = workbook.Sheets[sheetNameToLoad];
+    const json = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+
+    if (json.length > 0) {
+      // 列头
+      columns.value = json[0].map((h, i) => ({
+        prop: h || `COL_${i}`,
+        label: h || `COL_${i}`,
+        minWidth: 100,
+        align: 'center'
+      }));
+
+      // 数据
+      rawData.value = json.slice(1).map((row, idx) => {
+        const obj = { id: idx + 1 };
+        json[0].forEach((h, i) => {
+          // trim() an whitespace from header
+          const header = typeof h === 'string' ? h.trim() : h;
+          obj[header] = row[i];
+        });
+        return obj;
+      });
+
+      // 更新筛选选项
+      companyOptions.value = [
+        '全部',
+        ...new Set(rawData.value.map((r) => r.公司).filter(Boolean))
+      ];
+      shipTypeOptions.value = [
+        '全部',
+        ...new Set(rawData.value.map((r) => r.船型).filter(Boolean))
+      ];
+      charterPeriodOptions.value = [
+        '全部',
+        ...new Set(rawData.value.map((r) => r.租期).filter(Boolean))
+      ];
+
+      // 重置筛选器
+      filterCompany.value = '';
+      filterShipType.value = '';
+      filterCharterPeriod.value = '';
+
+      ElMessage.success(`"${sheetNameToLoad}"年数据加载成功`);
+    } else {
+      ElMessage.warning('Excel工作表中没有数据');
+      rawData.value = [];
+      initDefaultColumns();
+    }
   } catch (err) {
     console.error(err);
     loadError.value = true;
+    workbookData.value = null; // 清除缓存，以便重新加载
     initDefaultColumns();
     rawData.value = [];
-    ElMessage.error('读取 Excel 失败');
+    ElMessage.error('读取 Excel 失败, 请检查文件或网络连接');
   } finally {
     loading.value = false;
   }
 }
 
-function applyFilter () {
-  // computed 自动刷新
+function refreshData() {
+  workbookData.value = null; // 清空缓存以强制重新获取文件
+  readExcelFile();
+}
+
+function applyFilter(year) {
+  readExcelFile(year);
 }
 
 onMounted(() => {

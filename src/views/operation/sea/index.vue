@@ -156,13 +156,16 @@
             </div>
           </template>
           <!-- 自定义预警横幅 -->
-          <div v-if="warnings.length" :style="`display: flex; align-items: center; background: #fdecea; border: 1px solid #f5c2c7; border-radius: 4px; padding: 12px 20px; margin-bottom: 16px; color: #b71c1c;`">
-            <el-icon style="font-size: 22px; margin-right: 12px;"><WarningFilled /></el-icon>
+          <div v-if="bannerWarning" :style="bannerStyle(bannerWarning.severity)">
+            <el-icon style="font-size: 22px; margin-right: 12px;">
+              <component :is="bannerIcon(bannerWarning.severity)" />
+            </el-icon>
             <div style="flex: 1; min-width: 0;">
-              <div style="font-weight: bold; font-size: 16px;">{{ warnings[0].summary }}</div>
-              <div style="font-size: 14px; margin-top: 2px; white-space: pre-line;">{{ warnings[0].details }}</div>
+              <div style="font-weight: bold; font-size: 16px;">【{{ bannerWarning.type }}】{{ bannerWarning.summary }}</div>
+              <div style="font-size: 14px; margin-top: 2px; white-space: pre-line;">{{ bannerWarning.details }}</div>
+              <div style="font-size: 12px; color: #888; margin-top: 2px;">{{ bannerWarning.time }}</div>
             </div>
-            <el-button type="text" @click="drawerVisible = true" style="margin-left: 24px; color: #b71c1c; font-weight: bold;">查看详情</el-button>
+            <el-button type="text" @click="drawerVisible = true" :style="bannerBtnStyle(bannerWarning.severity)">查看详情</el-button>
           </div>
           <el-drawer
             v-model="drawerVisible"
@@ -181,6 +184,7 @@
                   <b>{{ item.summary }}</b>
                   <div style="font-size: 13px; color: #888;">{{ item.details }}</div>
                   <div style="font-size: 12px; color: #aaa;">类型：{{ item.type }}</div>
+                  <el-button v-if="item.target" size="small" type="primary" style="margin-top: 6px;" @click="locateOnChart(item.target.routeIdx)">定位图上</el-button>
                 </div>
               </el-timeline-item>
             </el-timeline>
@@ -194,7 +198,7 @@
                 </div>
                 <div class="chart-legend">
                   <div class="legend-item">
-                    <span class="legend-line" style="background-color: #FF0000"></span>
+                    <span class="legend-line" style="background-color: #888888"></span>
                     <span class="legend-text">需求线</span>
                   </div>
                   <div class="legend-item">
@@ -206,11 +210,11 @@
                     <span class="legend-text">租船计划线</span>
                   </div>
                   <div class="legend-item">
-                    <span class="legend-line" style="background-color: #FFA500"></span>
+                    <span class="legend-line" style="background-color: #FF0000"></span>
                     <span class="legend-text">散货船实际线</span>
                   </div>
                   <div class="legend-item">
-                    <span class="legend-line" style="background-color: #7030A0"></span>
+                    <span class="legend-line" style="background-color: #FFA500"></span>
                     <span class="legend-text">租船实际线</span>
                   </div>
                 </div>
@@ -226,6 +230,7 @@
                         ref="mainTable"
                       ></table>
                       <div ref="svgContainer" class="svg-container"></div>
+                      <div ref="timelineLayer" class="timeline-layer"></div>
                     </div>
                   </div>
                 </div>
@@ -239,8 +244,8 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue';
-import { Search, Download, Refresh, ArrowUp, ArrowDown, WarningFilled } from '@element-plus/icons-vue';
+import { ref, reactive, onMounted, computed, nextTick } from 'vue';
+import { Search, Download, Refresh, ArrowUp, ArrowDown, WarningFilled, InfoFilled, CircleCheckFilled } from '@element-plus/icons-vue';
 import { useFormData } from '@/utils/use-form-data';
 
 defineOptions({ name: 'SeaOperation' });
@@ -365,6 +370,7 @@ const chartCardExpanded = ref(true);
 
 const mainTable = ref(null);
 const svgContainer = ref(null);
+const timelineLayer = ref(null);
 
 const drawerVisible = ref(false);
 const warnings = ref([
@@ -375,6 +381,7 @@ const warnings = ref([
     summary: '台风预警',
     details: '预计24小时内有台风影响天津港。',
     time: '2024-06-01 10:00',
+    target: null
   },
   {
     id: 2,
@@ -383,7 +390,35 @@ const warnings = ref([
     summary: '设备故障',
     details: '黄骅港装船设备临时检修。',
     time: '2024-06-01 09:00',
+    target: null
   },
+  {
+    id: 3,
+    severity: 'medium',
+    type: '延误',
+    summary: '船舶延误',
+    details: '国电15延误，预计晚到港2天。',
+    time: '2024-06-01 08:00',
+    target: { ship: '国电15', routeIdx: 0 }
+  },
+  {
+    id: 4,
+    severity: 'low',
+    type: '拥堵',
+    summary: '天津港拥堵',
+    details: '天津港排队时间增加，预计影响国电15。',
+    time: '2024-06-01 07:00',
+    target: { ship: '国电15', routeIdx: 0 }
+  },
+  {
+    id: 5,
+    severity: 'info',
+    type: '计划变更',
+    summary: '租船1计划调整',
+    details: '租船1计划临时调整，预计提前1天到港。',
+    time: '2024-06-01 06:00',
+    target: { ship: '租船1', routeIdx: 4 }
+  }
 ]);
 const severityTypeMap = {
   high: 'error',
@@ -391,6 +426,23 @@ const severityTypeMap = {
   low: 'info',
   info: 'info',
 };
+
+// 高亮相关状态
+const hoverRouteIdx = ref(null);
+
+// 计算横幅显示的预警（最严重且最新）
+const bannerWarning = computed(() => {
+  // 按severity优先级和时间排序，取第一条
+  const severityOrder = { high: 1, medium: 2, low: 3, info: 4 };
+  return warnings.value
+    .slice()
+    .sort((a, b) => {
+      if (severityOrder[a.severity] !== severityOrder[b.severity]) {
+        return severityOrder[a.severity] - severityOrder[b.severity];
+      }
+      return new Date(b.time) - new Date(a.time);
+    })[0];
+});
 
 function createTable() {
   const ports = ['天津', '黄骅', '社会港', '华中销售', '神皖能源'];
@@ -534,7 +586,7 @@ function drawShipRoute() {
   }
 
   // 路径绘制函数
-  function drawRoute(routePoints, color) {
+  function drawRoute(routePoints, color, shipName, idx) {
     let pathData = '';
     routePoints.forEach((point, idx) => {
       const pos = getCellPosition(point.port, point.state, point.day);
@@ -553,13 +605,67 @@ function drawShipRoute() {
       }
     });
     if (pathData) {
+      const group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
       const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
       path.setAttribute('d', pathData);
       path.setAttribute('stroke', color);
-      path.setAttribute('stroke-width', '2');
       path.setAttribute('fill', 'none');
-      svg.appendChild(path);
+      path.setAttribute('data-route-idx', idx);
+      if (hoverRouteIdx.value === idx) {
+        path.setAttribute('stroke-width', '4');
+        path.setAttribute('stroke-opacity', '0.8');
+        path.setAttribute('filter', 'drop-shadow(0 0 4px #888)');
+      } else {
+        path.setAttribute('stroke-width', '2');
+        path.setAttribute('stroke-opacity', '1');
+        path.removeAttribute('filter');
+      }
+      group.appendChild(path);
+      // 船名
+      if (shipName) {
+        const first = routePoints[0];
+        const pos = getCellPosition(first.port, first.state, first.day);
+        if (pos) {
+          const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+          text.setAttribute('x', pos.x);
+          text.setAttribute('y', pos.y - 10);
+          text.setAttribute('text-anchor', 'middle');
+          text.setAttribute('fill', '#000');
+          text.setAttribute('font-size', '12px');
+          text.textContent = shipName;
+          group.appendChild(text);
+        }
+      }
+      // 悬停事件
+      group.setAttribute('style', 'pointer-events: auto; cursor: pointer;');
+      group.addEventListener('mouseenter', () => {
+        hoverRouteIdx.value = idx;
+        updateRouteHighlight();
+      });
+      group.addEventListener('mouseleave', () => {
+        hoverRouteIdx.value = null;
+        updateRouteHighlight();
+      });
+      svg.appendChild(group);
     }
+  }
+
+  // 新增：只更新高亮，不重建SVG
+  function updateRouteHighlight() {
+    const svg = svgContainer.querySelector('svg');
+    if (!svg) return;
+    const paths = svg.querySelectorAll('path');
+    paths.forEach((path, i) => {
+      if (hoverRouteIdx.value === i) {
+        path.setAttribute('stroke-width', '4');
+        path.setAttribute('stroke-opacity', '0.8');
+        path.setAttribute('filter', 'drop-shadow(0 0 4px #888)');
+      } else {
+        path.setAttribute('stroke-width', '2');
+        path.setAttribute('stroke-opacity', '1');
+        path.removeAttribute('filter');
+      }
+    });
   }
 
   // 两条线的数据
@@ -621,12 +727,38 @@ function drawShipRoute() {
     { port: '华中销售', state: '装船', day: 28 }
   ];
 
-  // 绘制五条线
-  drawRoute(routePoints1, '#0070C0'); // 散货船计划线
-  drawRoute(routePoints2, '#FFA500'); // 散货船实际线
-  drawRoute(routePoints3, '#FF0000'); // 需求线
-  drawRoute(routePoints4, '#FF0000'); // 需求线
-  drawRoute(routePoints5, '#00B050'); // 租船计划线
+  // 绘制五条线，前两条加船名，租船计划线也加船名
+  drawRoute(routePoints1, '#0070C0', '国电15', 0); // 散货船计划线
+  drawRoute(routePoints2, '#FF0000', '国电15', 1); // 散货船实际线（红色）
+  drawRoute(routePoints3, '#888888', null, 2); // 需求线（灰色）
+  drawRoute(routePoints4, '#888888', null, 3); // 需求线（灰色）
+  drawRoute(routePoints5, '#FFA500', '租船1', 4); // 租船实际线（橙色）
+
+  nextTick(() => {
+    drawTimelineLayer();
+  });
+}
+
+function drawTimelineLayer() {
+  const table = mainTable.value;
+  const layer = timelineLayer.value;
+  if (!table || !layer) return;
+  // 获取第25天那一列的x坐标
+  const day = 25;
+  // 取表格最上面和最下面的cell
+  const topCell = table.rows[1]?.cells[day + 1];
+  const bottomCell = table.rows[table.rows.length - 2]?.cells[day + 1];
+  if (!topCell || !bottomCell) return;
+  const tableRect = table.getBoundingClientRect();
+  const topRect = topCell.getBoundingClientRect();
+  const bottomRect = bottomCell.getBoundingClientRect();
+  // 计算线的x、y
+  const x = topRect.left - tableRect.left + topRect.width / 2;
+  const y1 = topRect.top - tableRect.top;
+  const y2 = bottomRect.top - tableRect.top + bottomRect.height;
+  // 设置layer样式
+  layer.innerHTML = `<div style="position:absolute;left:${x - 1}px;top:${y1}px;height:${y2 - y1}px;width:2px;background: repeating-linear-gradient(to bottom, #FF0000, #FF0000 6px, transparent 6px, transparent 10px);z-index:10;pointer-events:none;"></div>
+    <div style="position:absolute;left:${x - 30}px;top:${y1 - 24}px;color:#FF0000;font-size:13px;font-weight:bold;z-index:11;pointer-events:none;">当前时刻</div>`;
 }
 
 onMounted(() => {
@@ -640,7 +772,65 @@ onMounted(() => {
 // 添加窗口大小改变时的重绘
 window.addEventListener('resize', () => {
   drawShipRoute();
+  drawTimelineLayer();
 });
+
+function locateOnChart(routeIdx) {
+  // 高亮对应线条
+  hoverRouteIdx.value = routeIdx;
+  // 更新高亮
+  const svg = svgContainer.value?.querySelector('svg');
+  if (svg) {
+    const paths = svg.querySelectorAll('path');
+    paths.forEach((path, i) => {
+      if (routeIdx === i) {
+        path.setAttribute('stroke-width', '4');
+        path.setAttribute('stroke-opacity', '0.8');
+        path.setAttribute('filter', 'drop-shadow(0 0 4px #888)');
+      } else {
+        path.setAttribute('stroke-width', '2');
+        path.setAttribute('stroke-opacity', '1');
+        path.removeAttribute('filter');
+      }
+    });
+  }
+  // 滚动到图表区域
+  const chartArea = document.querySelector('.chart-main-area');
+  if (chartArea) {
+    chartArea.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+}
+
+function bannerStyle(severity) {
+  if (severity === 'high') {
+    return 'display: flex; align-items: center; background: #fdecea; border: 1px solid #f5c2c7; border-radius: 4px; padding: 12px 20px; margin-bottom: 16px; color: #b71c1c;';
+  } else if (severity === 'medium') {
+    return 'display: flex; align-items: center; background: #fff4e5; border: 1px solid #ffd59e; border-radius: 4px; padding: 12px 20px; margin-bottom: 16px; color: #ad6800;';
+  } else if (severity === 'low') {
+    return 'display: flex; align-items: center; background: #e8f7ff; border: 1px solid #b3e5fc; border-radius: 4px; padding: 12px 20px; margin-bottom: 16px; color: #096dd9;';
+  } else {
+    return 'display: flex; align-items: center; background: #f4f8fb; border: 1px solid #d3e2ef; border-radius: 4px; padding: 12px 20px; margin-bottom: 16px; color: #333;';
+  }
+}
+
+function bannerBtnStyle(severity) {
+  if (severity === 'high') {
+    return 'margin-left: 24px; color: #b71c1c; font-weight: bold;';
+  } else if (severity === 'medium') {
+    return 'margin-left: 24px; color: #ad6800; font-weight: bold;';
+  } else if (severity === 'low') {
+    return 'margin-left: 24px; color: #096dd9; font-weight: bold;';
+  } else {
+    return 'margin-left: 24px; color: #333; font-weight: bold;';
+  }
+}
+
+function bannerIcon(severity) {
+  if (severity === 'high') return WarningFilled;
+  if (severity === 'medium') return InfoFilled;
+  if (severity === 'low') return CircleCheckFilled;
+  return InfoFilled;
+}
 </script>
 
 <style lang="scss" scoped>
@@ -695,12 +885,16 @@ window.addEventListener('resize', () => {
   flex-grow: 1;
   position: relative;
   min-height: 600px;
+  overflow-x: auto;
+  white-space: nowrap;
 }
 #mainTable {
   border-collapse: collapse;
   table-layout: fixed;
   border: 2px solid #0070c0;
   color: #222;
+  min-width: 1200px;
+  width: auto;
 }
 #mainTable th,
 #mainTable td {
@@ -814,8 +1008,13 @@ window.addEventListener('resize', () => {
   z-index: 1;
 }
 
-.chart-main-area {
-  position: relative;
-  overflow: visible !important;
+.timeline-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 10;
 }
 </style>

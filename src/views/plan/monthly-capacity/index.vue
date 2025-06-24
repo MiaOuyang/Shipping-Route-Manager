@@ -35,18 +35,89 @@
     <ele-card>
       <ele-toolbar title="运力计划表" :title-props="{ size: 'md' }">
         <template #tools>
-          <div style="display:flex;align-items:center">
+          <div style="display: flex; align-items: center; flex-wrap: wrap">
             <!-- 办事处筛选 -->
-            <el-select v-model="filterOffice" placeholder="办事处" style="width:140px" @change="applyFilter">
-              <el-option value="全部" label="全部" />
-              <el-option v-for="o in officeOptions" :key="o" :value="o" :label="o" />
+            <span style="margin-right: 8px">办事处:</span>
+            <el-select
+              v-model="filterOffice"
+              placeholder="办事处"
+              style="width: 140px; margin-right: 12px"
+              clearable
+            >
+              <el-option
+                v-for="o in officeOptions"
+                :key="o"
+                :value="o"
+                :label="o"
+              />
             </el-select>
             <!-- 月份筛选 -->
-            <el-select v-model="filterMonth" placeholder="装出月份" style="width:100px;margin-left:8px" @change="applyFilter">
-              <el-option value="全部" label="全部" />
-              <el-option v-for="m in monthOptions" :key="m" :value="m" :label="m" />
+            <span style="margin-right: 8px">装出月份:</span>
+            <el-select
+              v-model="filterMonth"
+              placeholder="装出月份"
+              style="width: 100px; margin-right: 12px"
+              clearable
+            >
+              <el-option
+                v-for="m in monthOptions"
+                :key="m"
+                :value="m"
+                :label="m"
+              />
             </el-select>
-            <el-button type="primary" size="small" style="margin-left:12px" @click="readExcelFile">刷新</el-button>
+            <!-- 用户筛选 -->
+            <span style="margin-right: 8px">用户:</span>
+            <el-select
+              v-model="filterUser"
+              placeholder="用户"
+              style="width: 140px; margin-right: 12px"
+              clearable
+            >
+              <el-option
+                v-for="u in userOptions"
+                :key="u"
+                :value="u"
+                :label="u"
+              />
+            </el-select>
+            <!-- 船舶类型筛选 -->
+            <span style="margin-right: 8px">船舶类型:</span>
+            <el-select
+              v-model="filterShipType"
+              placeholder="船舶类型"
+              style="width: 120px; margin-right: 12px"
+              clearable
+            >
+              <el-option
+                v-for="s in shipTypeOptions"
+                :key="s"
+                :value="s"
+                :label="s"
+              />
+            </el-select>
+            <!-- 客户经理筛选 -->
+            <span style="margin-right: 8px">客户经理:</span>
+            <el-select
+              v-model="filterAccountManager"
+              placeholder="客户经理"
+              style="width: 120px; margin-right: 12px"
+              clearable
+            >
+              <el-option
+                v-for="a in accountManagerOptions"
+                :key="a"
+                :value="a"
+                :label="a"
+              />
+            </el-select>
+            <el-button
+              type="primary"
+              size="small"
+              style="margin-left: 12px"
+              @click="readExcelFile"
+              >刷新</el-button
+            >
           </div>
         </template>
       </ele-toolbar>
@@ -81,23 +152,81 @@ const loading   = ref(false);
 const loadError = ref(false);
 
 /* 过滤 */
-const filterOffice = ref('全部');
-const filterMonth  = ref('全部');
+const filterOffice = ref('');
+const filterMonth = ref('');
 const officeOptions = ref([]);
-const monthOptions  = ['1','2','3','4','5','6','7','8','9','10','11','12'];
+const monthOptions = [
+  '全部',
+  '1',
+  '2',
+  '3',
+  '4',
+  '5',
+  '6',
+  '7',
+  '8',
+  '9',
+  '10',
+  '11',
+  '12'
+];
+const filterUser = ref('');
+const userOptions = ref([]);
+const filterShipType = ref('');
+const shipTypeOptions = ref([]);
+const filterAccountManager = ref('');
+const accountManagerOptions = ref([]);
 
 /* 过滤后的数据 */
-const filteredData = computed(() => rawData.value.filter(r => {
-  if (filterOffice.value !== '全部' && r.办事处 !== filterOffice.value) return false;
-  if (filterMonth.value  !== '全部' && String(r.装出月份) !== String(filterMonth.value)) return false;
-  return true;
-}));
+const filteredData = computed(() =>
+  rawData.value.filter((r) => {
+    if (
+      filterOffice.value &&
+      filterOffice.value !== '全部' &&
+      r.办事处 !== filterOffice.value
+    )
+      return false;
+    if (
+      filterMonth.value &&
+      filterMonth.value !== '全部' &&
+      String(r.装出月份) !== String(filterMonth.value)
+    )
+      return false;
+    if (
+      filterUser.value &&
+      filterUser.value !== '全部' &&
+      r.用户 !== filterUser.value
+    )
+      return false;
+    if (
+      filterShipType.value &&
+      filterShipType.value !== '全部' &&
+      r['船舶类型\n（锁定列）'] !== filterShipType.value
+    )
+      return false;
+    if (
+      filterAccountManager.value &&
+      filterAccountManager.value !== '全部' &&
+      r.客户经理 !== filterAccountManager.value
+    )
+      return false;
+    return true;
+  })
+);
 
 /* 统计 */
-const officeCount      = computed(() => new Set(rawData.value.map(r=>r.办事处)).size);
-const loadedMonths     = computed(() => new Set(rawData.value.map(r=>r.装出月份)).size);
-const totalPlanVolume  = computed(() => filteredData.value.reduce((s,r)=>s+Number(r.月度计划量||0),0));
-const totalAssigned    = computed(() => filteredData.value.reduce((s,r)=>s+Number(r.已排运力||0),0));
+const officeCount = computed(
+  () => new Set(filteredData.value.map((r) => r.办事处)).size
+);
+const loadedMonths = computed(
+  () => new Set(filteredData.value.map((r) => r.装出月份)).size
+);
+const totalPlanVolume = computed(() =>
+  filteredData.value.reduce((s, r) => s + Number(r.月度计划量 || 0), 0)
+);
+const totalAssigned = computed(() =>
+  filteredData.value.reduce((s, r) => s + Number(r.已排运力 || 0), 0)
+);
 
 /* 默认列 */
 function initDefaultColumns(){
@@ -161,7 +290,24 @@ async function readExcelFile(){
       return obj;
     });
 
-    officeOptions.value=[...new Set(rawData.value.map(r=>r.办事处))];
+    officeOptions.value = [
+      '全部',
+      ...new Set(rawData.value.map((r) => r.办事处).filter(Boolean))
+    ];
+    userOptions.value = [
+      '全部',
+      ...new Set(rawData.value.map((r) => r.用户).filter(Boolean))
+    ];
+    shipTypeOptions.value = [
+      '全部',
+      ...new Set(
+        rawData.value.map((r) => r['船舶类型\n（锁定列）']).filter(Boolean)
+      )
+    ];
+    accountManagerOptions.value = [
+      '全部',
+      ...new Set(rawData.value.map((r) => r.客户经理).filter(Boolean))
+    ];
 
     ElMessage.success('数据加载成功');
   }catch(e){
@@ -174,8 +320,6 @@ async function readExcelFile(){
     loading.value=false;
   }
 }
-
-function applyFilter(){}
 
 onMounted(()=>{
   initDefaultColumns();

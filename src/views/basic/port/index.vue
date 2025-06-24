@@ -36,32 +36,25 @@
             <template #title>
               <span class="collapse-title">展开/收起图表分析</span>
             </template>
-            <div class="dashboard-grid">
-              <!-- 上方：左-柱状图，右-统计卡片 -->
-              <div class="dashboard-bar">
-                <div class="chart-title">港口吞吐量统计</div>
-                <div ref="barChartRef" class="chart-box"></div>
+            <div class="statistics-grid">
+              <!-- 左上：本周泊位使用率趋势 -->
+              <div class="statistics-item">
+                <div class="chart-title">本周泊位使用率趋势</div>
+                <div ref="lineChartRef" class="chart-box"></div>
               </div>
-              <div class="dashboard-cards">
-                <div v-for="(item, idx) in dashboardCards" :key="idx" :class="['dashboard-card', item.color]">
-                  <div class="card-title">{{ item.title }}</div>
-                  <div class="card-value">{{ item.value }}</div>
-                  <div class="card-trend" :class="item.trend > 0 ? 'up' : 'down'">
-                    <span>{{ item.trend > 0 ? '+' : '' }}{{ item.trend }}%</span>
-                  </div>
-                </div>
-              </div>
-              <!-- 下方：左-环形图，中-分布，右-热力图 -->
-              <div class="dashboard-pie">
-                <div class="chart-title">吞吐量统计</div>
+              <!-- 右上：港口泊位数量分布 -->
+              <div class="statistics-item">
+                <div class="chart-title">港口泊位数量分布</div>
                 <div ref="pieChartRef" class="chart-box"></div>
               </div>
-              <div class="dashboard-map">
-                <div class="chart-title">港口分布</div>
-                <div ref="mapChartRef" class="chart-box"></div>
+              <!-- 左下：各港口泊位数量统计 -->
+              <div class="statistics-item">
+                <div class="chart-title">各港口泊位数量统计</div>
+                <div ref="barChartRef" class="chart-box"></div>
               </div>
-              <div class="dashboard-heatmap">
-                <div class="chart-title">在线活动</div>
+              <!-- 右下：泊位热力图 -->
+              <div class="statistics-item">
+                <div class="chart-title">泊位热力图</div>
                 <div ref="heatmapChartRef" class="chart-box"></div>
               </div>
             </div>
@@ -227,161 +220,359 @@ const activeCollapse = ref(['charts'])
 
 // 添加统计数据
 const statistics = reactive({
-  total: 5,
-  berthTotal: 15,
-  berthAvailable: 12,
-  berthUsageRate: '80%',
-  berthMaintaining: 3,
-  todayBerthShip: 8
+  total: 7,  // 总港口数（黄骅、曹妃甸、秦皇岛、天津、青岛、连云港、日照）
+  berthTotal: 85, // 所有港口泊位总数
+  berthAvailable: 78, // 可用泊位数
+  berthUsageRate: '91.8%', // 泊位使用率
+  berthMaintaining: 7, // 维护中泊位数
+  todayBerthShip: 25 // 今日靠泊船舶数
 })
 
 // 添加图表数据
 const chartData = reactive({
-  portNames: ['国能秦皇岛港', '国能曹妃甸港', '国能天津港', '国能上海港', '国能宁波港'],
-  berthCounts: [3, 4, 5, 3, 2],
+  weekDays: ['周一', '周二', '周三', '周四', '周五', '周六', '周日'],
+  usageRate: [92, 89, 94, 91, 93, 88, 90],
   berthTypePie: [
-    { value: 3, name: '煤炭泊位' },
-    { value: 4, name: '矿石泊位' },
-    { value: 5, name: '集装箱泊位' },
-    { value: 3, name: '液体化工泊位' },
-    { value: 2, name: '散杂货泊位' }
-  ]
+    { value: 52, name: '煤炭泊位' },
+    { value: 12, name: '集装箱泊位' },
+    { value: 8, name: '散货泊位' },
+    { value: 6, name: '液体泊位' },
+    { value: 4, name: '杂货泊位' },
+    { value: 3, name: '滚装泊位' }
+  ],
+  portNames: ['黄骅港', '曹妃甸', '秦皇岛', '天津港', '青岛港', '连云港', '日照港'],
+  berthCounts: [15, 3, 21, 20, 15, 9, 2]
 })
 
 const allPortList = ref([
   {
     id: 1,
-    portName: '国能秦皇岛港',
-    portCode: 'CNQHD',
-    berthNo: '01',
-    berthName: '1号煤炭泊位',
-    channel: '秦皇岛主航道',
-    draft: '15.5',
+    portName: '黄骅国能港区',
+    portCode: 'HHGN',
+    berthNo: '100',
+    berthName: '100号煤炭泊位',
+    channel: '黄骅港主航道',
+    draft: '14.5',
     lakeType: '海港',
-    nightNav: '是',
-    pilotage: '强制引航',
+    nightNav: '可夜航',
+    pilotage: '船舶证书载重吨85000T以内不强制；船舶证书载重吨85000T以上强制引水，但可申请自引（待批）',
     frontDepth: '14.5',
-    berthLength: '300',
-    berthWidth: '32',
-    shipCondition: '30万吨级散货船',
-    machineCount: '6',
-    capacity: '2500',
-    shorePower: '已配备',
-    remark: '国能集团主力煤炭中转港',
-    address: '河北省秦皇岛市海港区港口路1号',
-    manager: '国能集团秦皇岛港口有限公司',
-    buildYear: '1985',
-    facility: '自动化装卸系统、封闭式皮带廊道',
-    maxShip: '30万吨',
+    berthLength: '257.5',
+    berthWidth: '30',
+    shipCondition: '5万吨',
+    machineCount: '1',
+    capacity: '3000',
+    shorePower: '低压',
+    remark: '煤炭专用泊位',
     portType: '煤炭港',
     company: '国能集团航运公司'
   },
   {
     id: 2,
-    portName: '国能曹妃甸港',
-    portCode: 'CNTCD',
-    berthNo: '02',
-    berthName: '2号矿石泊位',
-    channel: '曹妃甸主航道',
-    draft: '18.0',
+    portName: '黄骅国能港区',
+    portCode: 'HHGN',
+    berthNo: '101',
+    berthName: '101号煤炭泊位',
+    channel: '黄骅港主航道',
+    draft: '14.5',
     lakeType: '海港',
-    nightNav: '是',
-    pilotage: '强制引航',
-    frontDepth: '17.5',
-    berthLength: '350',
-    berthWidth: '38',
-    shipCondition: '40万吨级矿石船',
-    machineCount: '8',
-    capacity: '3500',
-    shorePower: '已配备',
-    remark: '国能集团矿石进口主港',
-    address: '河北省唐山市曹妃甸区港口路88号',
-    manager: '国能集团曹妃甸港口有限公司',
-    buildYear: '2008',
-    facility: '高效卸船机、智能堆取料系统',
-    maxShip: '40万吨',
-    portType: '矿石港',
+    nightNav: '可夜航',
+    pilotage: '船舶证书载重吨85000T以内不强制；船舶证书载重吨85000T以上强制引水，但可申请自引（待批）',
+    frontDepth: '14.5',
+    berthLength: '257.5',
+    berthWidth: '30',
+    shipCondition: '5万吨',
+    machineCount: '1',
+    capacity: '3000',
+    shorePower: '高压',
+    remark: '煤炭专用泊位',
+    portType: '煤炭港',
     company: '国能集团航运公司'
   },
   {
     id: 3,
-    portName: '国能天津港',
-    portCode: 'CNTJG',
-    berthNo: '03',
-    berthName: '3号集装箱泊位',
-    channel: '天津深水主航道',
-    draft: '16.0',
+    portName: '黄骅国能港区',
+    portCode: 'HHGN',
+    berthNo: '102',
+    berthName: '102号煤炭泊位',
+    channel: '黄骅港主航道',
+    draft: '14.5',
     lakeType: '海港',
-    nightNav: '是',
-    pilotage: '强制引航',
-    frontDepth: '15.0',
-    berthLength: '400',
-    berthWidth: '45',
-    shipCondition: '20万吨级集装箱船',
-    machineCount: '10',
-    capacity: '5000',
-    shorePower: '已配备',
-    remark: '国能集团集装箱业务枢纽',
-    address: '天津市滨海新区港口路66号',
-    manager: '国能集团天津港口有限公司',
-    buildYear: '1995',
-    facility: '自动化集装箱堆场、智能闸口',
-    maxShip: '20万吨',
-    portType: '集装箱港',
+    nightNav: '可夜航',
+    pilotage: '船舶证书载重吨85000T以内不强制；船舶证书载重吨85000T以上强制引水，但可申请自引（待批）',
+    frontDepth: '14.5',
+    berthLength: '315',
+    berthWidth: '30',
+    shipCondition: '10万吨',
+    machineCount: '1',
+    capacity: '3000',
+    shorePower: '高压',
+    remark: '煤炭专用泊位',
+    portType: '煤炭港',
     company: '国能集团航运公司'
   },
   {
     id: 4,
-    portName: '国能上海港',
-    portCode: 'CNSHG',
-    berthNo: '04',
-    berthName: '4号液体化工泊位',
-    channel: '洋山深水港区航道',
-    draft: '17.0',
+    portName: '黄骅国能港区',
+    portCode: 'HHGN',
+    berthNo: '103',
+    berthName: '103号煤炭泊位',
+    channel: '黄骅港主航道',
+    draft: '14.5',
     lakeType: '海港',
-    nightNav: '是',
-    pilotage: '强制引航',
-    frontDepth: '16.5',
-    berthLength: '320',
-    berthWidth: '36',
-    shipCondition: '15万吨级油船',
-    machineCount: '5',
-    capacity: '2000',
-    shorePower: '已配备',
-    remark: '国能集团液体化工品中转',
-    address: '上海市浦东新区港口大道188号',
-    manager: '国能集团上海港口有限公司',
-    buildYear: '2005',
-    facility: '液体化工管廊、应急防泄漏系统',
-    maxShip: '15万吨',
-    portType: '液体化工港',
+    nightNav: '可夜航',
+    pilotage: '船舶证书载重吨85000T以内不强制；船舶证书载重吨85000T以上强制引水，但可申请自引（待批）',
+    frontDepth: '14.5',
+    berthLength: '290',
+    berthWidth: '30',
+    shipCondition: '3.5万吨',
+    machineCount: '1',
+    capacity: '5000',
+    shorePower: '高压/低压',
+    remark: '煤炭专用泊位',
+    portType: '煤炭港',
     company: '国能集团航运公司'
   },
   {
     id: 5,
-    portName: '国能宁波港',
-    portCode: 'CNNGB',
-    berthNo: '05',
-    berthName: '5号散杂货泊位',
-    channel: '宁波主航道',
-    draft: '14.0',
+    portName: '黄骅国能港区',
+    portCode: 'HHGN',
+    berthNo: '200',
+    berthName: '200号煤炭泊位',
+    channel: '黄骅港主航道',
+    draft: '14.5',
     lakeType: '海港',
-    nightNav: '是',
-    pilotage: '强制引航',
-    frontDepth: '13.5',
-    berthLength: '280',
-    berthWidth: '28',
-    shipCondition: '10万吨级散货船',
-    machineCount: '4',
-    capacity: '1500',
-    shorePower: '已配备',
-    remark: '国能集团南方煤炭中转',
-    address: '浙江省宁波市北仑区港口路168号',
-    manager: '国能集团宁波港口有限公司',
-    buildYear: '1990',
-    facility: '散货装卸机、封闭式传送带',
-    maxShip: '10万吨',
-    portType: '散杂货港',
+    nightNav: '可夜航',
+    pilotage: '船舶证书载重吨85000T以内不强制；船舶证书载重吨85000T以上强制引水，但可申请自引（待批）',
+    frontDepth: '14.5',
+    berthLength: '257.5',
+    berthWidth: '30',
+    shipCondition: '5万吨',
+    machineCount: '1',
+    capacity: '3000',
+    shorePower: '低压',
+    remark: '煤炭专用泊位',
+    portType: '煤炭港',
+    company: '国能集团航运公司'
+  },
+  {
+    id: 6,
+    portName: '黄骅国能港区',
+    portCode: 'HHGN',
+    berthNo: '201',
+    berthName: '201号煤炭泊位',
+    channel: '黄骅港主航道',
+    draft: '14.5',
+    lakeType: '海港',
+    nightNav: '可夜航',
+    pilotage: '船舶证书载重吨85000T以内不强制；船舶证书载重吨85000T以上强制引水，但可申请自引（待批）',
+    frontDepth: '14.5',
+    berthLength: '257.5',
+    berthWidth: '30',
+    shipCondition: '5万吨',
+    machineCount: '1',
+    capacity: '3000',
+    shorePower: '高压',
+    remark: '煤炭专用泊位',
+    portType: '煤炭港',
+    company: '国能集团航运公司'
+  },
+  {
+    id: 7,
+    portName: '黄骅国能港区',
+    portCode: 'HHGN',
+    berthNo: '202',
+    berthName: '202号煤炭泊位',
+    channel: '黄骅港主航道',
+    draft: '14.5',
+    lakeType: '海港',
+    nightNav: '可夜航',
+    pilotage: '船舶证书载重吨85000T以内不强制；船舶证书载重吨85000T以上强制引水，但可申请自引（待批）',
+    frontDepth: '14.5',
+    berthLength: '315',
+    berthWidth: '30',
+    shipCondition: '10万吨',
+    machineCount: '1',
+    capacity: '3000',
+    shorePower: '高压',
+    remark: '煤炭专用泊位',
+    portType: '煤炭港',
+    company: '国能集团航运公司'
+  },
+  {
+    id: 8,
+    portName: '黄骅国能港区',
+    portCode: 'HHGN',
+    berthNo: '203',
+    berthName: '203号煤炭泊位',
+    channel: '黄骅港主航道',
+    draft: '14.5',
+    lakeType: '海港',
+    nightNav: '可夜航',
+    pilotage: '船舶证书载重吨85000T以内不强制；船舶证书载重吨85000T以上强制引水，但可申请自引（待批）',
+    frontDepth: '14.5',
+    berthLength: '290',
+    berthWidth: '30',
+    shipCondition: '3.5万吨',
+    machineCount: '1',
+    capacity: '5000',
+    shorePower: '高压/低压',
+    remark: '煤炭专用泊位',
+    portType: '煤炭港',
+    company: '国能集团航运公司'
+  },
+  {
+    id: 9,
+    portName: '黄骅国能港区',
+    portCode: 'HHGN',
+    berthNo: '301',
+    berthName: '301号煤炭泊位',
+    channel: '黄骅港主航道',
+    draft: '14.5',
+    lakeType: '海港',
+    nightNav: '可夜航',
+    pilotage: '船舶证书载重吨85000T以内不强制；船舶证书载重吨85000T以上强制引水，但可申请自引（待批）',
+    frontDepth: '14.5',
+    berthLength: '290',
+    berthWidth: '30',
+    shipCondition: '3.5万吨',
+    machineCount: '1',
+    capacity: '5000',
+    shorePower: '高压/低压 与401不能同时接高压',
+    remark: '煤炭专用泊位',
+    portType: '煤炭港',
+    company: '国能集团航运公司'
+  },
+  {
+    id: 10,
+    portName: '黄骅国能港区',
+    portCode: 'HHGN',
+    berthNo: '401',
+    berthName: '401号煤炭泊位',
+    channel: '黄骅港主航道',
+    draft: '14.5',
+    lakeType: '海港',
+    nightNav: '可夜航',
+    pilotage: '船舶证书载重吨85000T以内不强制；船舶证书载重吨85000T以上强制引水，但可申请自引（待批）',
+    frontDepth: '14.5',
+    berthLength: '290',
+    berthWidth: '30',
+    shipCondition: '3.5万吨',
+    machineCount: '0',
+    capacity: '5000',
+    shorePower: '高压/低压',
+    remark: '煤炭专用泊位',
+    portType: '煤炭港',
+    company: '国能集团航运公司'
+  },
+  {
+    id: 11,
+    portName: '黄骅国能港区',
+    portCode: 'HHGN',
+    berthNo: '302',
+    berthName: '302号煤炭泊位',
+    channel: '黄骅港主航道',
+    draft: '14.5',
+    lakeType: '海港',
+    nightNav: '可夜航',
+    pilotage: '船舶证书载重吨85000T以内不强制；船舶证书载重吨85000T以上强制引水，但可申请自引（待批）',
+    frontDepth: '14.5',
+    berthLength: '248',
+    berthWidth: '30',
+    shipCondition: '7万吨',
+    machineCount: '1',
+    capacity: '5000',
+    shorePower: '高压',
+    remark: '煤炭专用泊位',
+    portType: '煤炭港',
+    company: '国能集团航运公司'
+  },
+  {
+    id: 12,
+    portName: '黄骅国能港区',
+    portCode: 'HHGN',
+    berthNo: '402',
+    berthName: '402号煤炭泊位',
+    channel: '黄骅港主航道',
+    draft: '14.5',
+    lakeType: '海港',
+    nightNav: '可夜航',
+    pilotage: '船舶证书载重吨85000T以内不强制；船舶证书载重吨85000T以上强制引水，但可申请自引（待批）',
+    frontDepth: '14.5',
+    berthLength: '248',
+    berthWidth: '30',
+    shipCondition: '7万吨',
+    machineCount: '0',
+    capacity: '5000',
+    shorePower: '高压/低压',
+    remark: '煤炭专用泊位',
+    portType: '煤炭港',
+    company: '国能集团航运公司'
+  },
+  {
+    id: 13,
+    portName: '黄骅国能港区',
+    portCode: 'HHGN',
+    berthNo: '303',
+    berthName: '303号煤炭泊位',
+    channel: '黄骅港主航道',
+    draft: '14.5',
+    lakeType: '海港',
+    nightNav: '可夜航',
+    pilotage: '船舶证书载重吨85000T以内不强制；船舶证书载重吨85000T以上强制引水，但可申请自引（待批）',
+    frontDepth: '14.5',
+    berthLength: '248',
+    berthWidth: '30',
+    shipCondition: '10万吨',
+    machineCount: '1',
+    capacity: '5000',
+    shorePower: '高压/低压',
+    remark: '煤炭专用泊位',
+    portType: '煤炭港',
+    company: '国能集团航运公司'
+  },
+  {
+    id: 14,
+    portName: '黄骅国能港区',
+    portCode: 'HHGN',
+    berthNo: '403',
+    berthName: '403号煤炭泊位',
+    channel: '黄骅港主航道',
+    draft: '14.5',
+    lakeType: '海港',
+    nightNav: '可夜航',
+    pilotage: '船舶证书载重吨85000T以内不强制；船舶证书载重吨85000T以上强制引水，但可申请自引（待批）',
+    frontDepth: '14.5',
+    berthLength: '248',
+    berthWidth: '30',
+    shipCondition: '7万吨',
+    machineCount: '0',
+    capacity: '5000',
+    shorePower: '高压/低压',
+    remark: '煤炭专用泊位',
+    portType: '煤炭港',
+    company: '国能集团航运公司'
+  },
+  {
+    id: 15,
+    portName: '黄骅国能港区',
+    portCode: 'HHGN',
+    berthNo: '304',
+    berthName: '304号煤炭泊位',
+    channel: '黄骅港主航道',
+    draft: '14.5',
+    lakeType: '海港',
+    nightNav: '可夜航',
+    pilotage: '船舶证书载重吨85000T以内不强制；船舶证书载重吨85000T以上强制引水，但可申请自引（待批）',
+    frontDepth: '14.5',
+    berthLength: '286',
+    berthWidth: '30',
+    shipCondition: '10万吨',
+    machineCount: '1',
+    capacity: '5000',
+    shorePower: '高压/低压',
+    remark: '煤炭专用泊位',
+    portType: '煤炭港',
     company: '国能集团航运公司'
   }
 ])
@@ -413,137 +604,90 @@ function resetSearch() {
   allPortList.value = [
     {
       id: 1,
-      portName: '国能秦皇岛港',
-      portCode: 'CNQHD',
-      berthNo: '01',
-      berthName: '1号煤炭泊位',
-      channel: '秦皇岛主航道',
-      draft: '15.5',
+      portName: '黄骅国能港区',
+      portCode: 'HHGN',
+      berthNo: '100',
+      berthName: '100号煤炭泊位',
+      channel: '黄骅港主航道',
+      draft: '14.5',
       lakeType: '海港',
-      nightNav: '是',
-      pilotage: '强制引航',
+      nightNav: '可夜航',
+      pilotage: '船舶证书载重吨85000T以内不强制；船舶证书载重吨85000T以上强制引水，但可申请自引（待批）',
       frontDepth: '14.5',
-      berthLength: '300',
-      berthWidth: '32',
-      shipCondition: '30万吨级散货船',
-      machineCount: '6',
-      capacity: '2500',
-      shorePower: '已配备',
-      remark: '国能集团主力煤炭中转港',
-      address: '河北省秦皇岛市海港区港口路1号',
-      manager: '国能集团秦皇岛港口有限公司',
-      buildYear: '1985',
-      facility: '自动化装卸系统、封闭式皮带廊道',
-      maxShip: '30万吨',
+      berthLength: '257.5',
+      berthWidth: '30',
+      shipCondition: '5万吨',
+      machineCount: '1',
+      capacity: '3000',
+      shorePower: '低压',
+      remark: '煤炭专用泊位',
       portType: '煤炭港',
       company: '国能集团航运公司'
     },
     {
       id: 2,
-      portName: '国能曹妃甸港',
-      portCode: 'CNTCD',
-      berthNo: '02',
-      berthName: '2号矿石泊位',
-      channel: '曹妃甸主航道',
-      draft: '18.0',
+      portName: '黄骅国能港区',
+      portCode: 'HHGN',
+      berthNo: '101',
+      berthName: '101号煤炭泊位',
+      channel: '黄骅港主航道',
+      draft: '14.5',
       lakeType: '海港',
-      nightNav: '是',
-      pilotage: '强制引航',
-      frontDepth: '17.5',
-      berthLength: '350',
-      berthWidth: '38',
-      shipCondition: '40万吨级矿石船',
-      machineCount: '8',
-      capacity: '3500',
-      shorePower: '已配备',
-      remark: '国能集团矿石进口主港',
-      address: '河北省唐山市曹妃甸区港口路88号',
-      manager: '国能集团曹妃甸港口有限公司',
-      buildYear: '2008',
-      facility: '高效卸船机、智能堆取料系统',
-      maxShip: '40万吨',
-      portType: '矿石港',
+      nightNav: '可夜航',
+      pilotage: '船舶证书载重吨85000T以内不强制；船舶证书载重吨85000T以上强制引水，但可申请自引（待批）',
+      frontDepth: '14.5',
+      berthLength: '257.5',
+      berthWidth: '30',
+      shipCondition: '5万吨',
+      machineCount: '1',
+      capacity: '3000',
+      shorePower: '高压',
+      remark: '煤炭专用泊位',
+      portType: '煤炭港',
       company: '国能集团航运公司'
     },
     {
       id: 3,
-      portName: '国能天津港',
-      portCode: 'CNTJG',
-      berthNo: '03',
-      berthName: '3号集装箱泊位',
-      channel: '天津深水主航道',
-      draft: '16.0',
+      portName: '黄骅国能港区',
+      portCode: 'HHGN',
+      berthNo: '102',
+      berthName: '102号煤炭泊位',
+      channel: '黄骅港主航道',
+      draft: '14.5',
       lakeType: '海港',
-      nightNav: '是',
-      pilotage: '强制引航',
-      frontDepth: '15.0',
-      berthLength: '400',
-      berthWidth: '45',
-      shipCondition: '20万吨级集装箱船',
-      machineCount: '10',
-      capacity: '5000',
-      shorePower: '已配备',
-      remark: '国能集团集装箱业务枢纽',
-      address: '天津市滨海新区港口路66号',
-      manager: '国能集团天津港口有限公司',
-      buildYear: '1995',
-      facility: '自动化集装箱堆场、智能闸口',
-      maxShip: '20万吨',
-      portType: '集装箱港',
+      nightNav: '可夜航',
+      pilotage: '船舶证书载重吨85000T以内不强制；船舶证书载重吨85000T以上强制引水，但可申请自引（待批）',
+      frontDepth: '14.5',
+      berthLength: '315',
+      berthWidth: '30',
+      shipCondition: '10万吨',
+      machineCount: '1',
+      capacity: '3000',
+      shorePower: '高压',
+      remark: '煤炭专用泊位',
+      portType: '煤炭港',
       company: '国能集团航运公司'
     },
     {
       id: 4,
-      portName: '国能上海港',
-      portCode: 'CNSHG',
-      berthNo: '04',
-      berthName: '4号液体化工泊位',
-      channel: '洋山深水港区航道',
-      draft: '17.0',
+      portName: '黄骅国能港区',
+      portCode: 'HHGN',
+      berthNo: '103',
+      berthName: '103号煤炭泊位',
+      channel: '黄骅港主航道',
+      draft: '14.5',
       lakeType: '海港',
-      nightNav: '是',
-      pilotage: '强制引航',
-      frontDepth: '16.5',
-      berthLength: '320',
-      berthWidth: '36',
-      shipCondition: '15万吨级油船',
-      machineCount: '5',
-      capacity: '2000',
-      shorePower: '已配备',
-      remark: '国能集团液体化工品中转',
-      address: '上海市浦东新区港口大道188号',
-      manager: '国能集团上海港口有限公司',
-      buildYear: '2005',
-      facility: '液体化工管廊、应急防泄漏系统',
-      maxShip: '15万吨',
-      portType: '液体化工港',
-      company: '国能集团航运公司'
-    },
-    {
-      id: 5,
-      portName: '国能宁波港',
-      portCode: 'CNNGB',
-      berthNo: '05',
-      berthName: '5号散杂货泊位',
-      channel: '宁波主航道',
-      draft: '14.0',
-      lakeType: '海港',
-      nightNav: '是',
-      pilotage: '强制引航',
-      frontDepth: '13.5',
-      berthLength: '280',
-      berthWidth: '28',
-      shipCondition: '10万吨级散货船',
-      machineCount: '4',
-      capacity: '1500',
-      shorePower: '已配备',
-      remark: '国能集团南方煤炭中转',
-      address: '浙江省宁波市北仑区港口路168号',
-      manager: '国能集团宁波港口有限公司',
-      buildYear: '1990',
-      facility: '散货装卸机、封闭式传送带',
-      maxShip: '10万吨',
-      portType: '散杂货港',
+      nightNav: '可夜航',
+      pilotage: '船舶证书载重吨85000T以内不强制；船舶证书载重吨85000T以上强制引水，但可申请自引（待批）',
+      frontDepth: '14.5',
+      berthLength: '290',
+      berthWidth: '30',
+      shipCondition: '3.5万吨',
+      machineCount: '1',
+      capacity: '5000',
+      shorePower: '高压/低压',
+      remark: '煤炭专用泊位',
+      portType: '煤炭港',
       company: '国能集团航运公司'
     }
   ]
@@ -666,30 +810,54 @@ function handleCurrentChange(val) {
   currentPage.value = val
 }
 
-// 仪表盘统计卡片数据
-const dashboardCards = [
-  { title: '点赞', value: '56,023,936', trend: 30, color: 'blue' },
-  { title: '关注', value: '32,668', trend: 23, color: 'purple' },
-  { title: '收藏', value: '12,256,841', trend: 5, color: 'yellow' },
-  { title: '累计', value: '6,326,123', trend: -30, color: 'green' }
-]
-
 // 图表ref
-const barChartRef = ref(null)
+const lineChartRef = ref(null)
 const pieChartRef = ref(null)
-const mapChartRef = ref(null)
+const barChartRef = ref(null)
 const heatmapChartRef = ref(null)
 
-let barChart, pieChart, mapChart, heatmapChart
+let lineChart, pieChart, barChart, heatmapChart
 
 function renderCharts() {
-  // 1. 柱状图（港口吞吐量统计）
+  // 1. 折线图
+  if (lineChartRef.value) {
+    lineChart = echarts.init(lineChartRef.value)
+    lineChart.setOption({
+      tooltip: { trigger: 'axis' },
+      xAxis: { type: 'category', data: chartData.weekDays },
+      yAxis: { type: 'value', name: '使用率(%)', min: 0, max: 100 },
+      series: [{
+        data: chartData.usageRate,
+        type: 'line',
+        areaStyle: { color: '#e0f3ff' },
+        smooth: true,
+        lineStyle: { color: '#409EFF' }
+      }]
+    })
+  }
+  // 2. 饼图
+  if (pieChartRef.value) {
+    pieChart = echarts.init(pieChartRef.value)
+    pieChart.setOption({
+      tooltip: { trigger: 'item' },
+      legend: { left: 'center', bottom: 0 },
+      series: [{
+        name: '泊位数量',
+        type: 'pie',
+        radius: ['50%', '70%'],
+        avoidLabelOverlap: false,
+        label: { show: true, position: 'outside' },
+        data: chartData.berthTypePie
+      }]
+    })
+  }
+  // 3. 柱状图
   if (barChartRef.value) {
     barChart = echarts.init(barChartRef.value)
     barChart.setOption({
       tooltip: { trigger: 'axis' },
       xAxis: { type: 'category', data: chartData.portNames },
-      yAxis: { type: 'value', name: '吞吐量(万吨)' },
+      yAxis: { type: 'value', name: '泊位数量' },
       series: [{
         data: chartData.berthCounts,
         type: 'bar',
@@ -698,50 +866,15 @@ function renderCharts() {
       }]
     })
   }
-  // 2. 环形图（吞吐量统计）
-  if (pieChartRef.value) {
-    pieChart = echarts.init(pieChartRef.value)
-    pieChart.setOption({
-      tooltip: { trigger: 'item' },
-      legend: { left: 'center', bottom: 0 },
-      series: [{
-        name: '吞吐量',
-        type: 'pie',
-        radius: ['65%', '85%'],
-        avoidLabelOverlap: false,
-        label: { show: false },
-        emphasis: { label: { show: true, fontSize: 18, fontWeight: 'bold' } },
-        labelLine: { show: false },
-        data: chartData.berthTypePie
-      }]
-    })
-  }
-  // 3. 分布条形图（港口分布）
-  if (mapChartRef.value) {
-    mapChart = echarts.init(mapChartRef.value)
-    mapChart.setOption({
-      tooltip: { trigger: 'axis' },
-      grid: { left: 40, right: 20, top: 30, bottom: 30 },
-      xAxis: { type: 'value', name: '数量' },
-      yAxis: { type: 'category', data: chartData.portNames, inverse: true },
-      series: [{
-        data: chartData.berthCounts,
-        type: 'bar',
-        barWidth: 18,
-        itemStyle: { color: '#67C23A' },
-        label: { show: true, position: 'right' }
-      }]
-    })
-  }
-  // 4. 热力图（在线活动）
+  // 4. 热力图
   if (heatmapChartRef.value) {
     heatmapChart = echarts.init(heatmapChartRef.value)
-    const hours = Array.from({length: 7}, (_, i) => (i+1).toString())
-    const days = Array.from({length: 7}, (_, i) => (i+1).toString())
+    const hours = chartData.weekDays
+    const days = ['泊位1', '泊位2', '泊位3', '泊位4', '泊位5']
     const data = []
-    for (let i = 0; i < 7; i++) {
-      for (let j = 0; j < 7; j++) {
-        data.push([i, j, Math.floor(Math.random()*10000)])
+    for (let i = 0; i < days.length; i++) {
+      for (let j = 0; j < hours.length; j++) {
+        data.push([j, i, Math.floor(Math.random() * 100)])
       }
     }
     heatmapChart.setOption({
@@ -750,11 +883,11 @@ function renderCharts() {
       xAxis: { type: 'category', data: hours, splitArea: { show: true } },
       yAxis: { type: 'category', data: days, splitArea: { show: true } },
       visualMap: {
-        min: 0, max: 10000, calculable: true, orient: 'horizontal', left: 'center', top: 0,
+        min: 0, max: 100, calculable: true, orient: 'horizontal', left: 'center', top: 0,
         inRange: { color: ['#e0f3ff','#409EFF'] }
       },
       series: [{
-        name: '在线活动',
+        name: '泊位热力',
         type: 'heatmap',
         data: data,
         label: { show: false },
@@ -765,9 +898,9 @@ function renderCharts() {
 }
 
 function resizeCharts() {
-  barChart?.resize()
+  lineChart?.resize()
   pieChart?.resize()
-  mapChart?.resize()
+  barChart?.resize()
   heatmapChart?.resize()
 }
 
@@ -907,77 +1040,14 @@ watch(allPortList, () => { nextTick(renderCharts) }, { deep: true })
   height: 300px;
   min-height: 240px;
 }
-.dashboard-grid {
+.statistics-grid {
   display: grid;
-  grid-template-columns: 2fr 1fr;
+  grid-template-columns: 1fr 1fr;
   grid-template-rows: 1fr 1fr;
   gap: 24px;
   margin-top: 24px;
 }
-.dashboard-bar {
-  grid-row: 1 / 2;
-  grid-column: 1 / 2;
-  background: #fff;
-  border-radius: 8px;
-  padding: 24px 24px 8px 24px;
-  box-shadow: 0 2px 8px 0 rgba(0,0,0,0.04);
-}
-.dashboard-cards {
-  grid-row: 1 / 2;
-  grid-column: 2 / 3;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-.dashboard-card {
-  background: #fff;
-  border-radius: 8px;
-  padding: 18px 20px;
-  box-shadow: 0 2px 8px 0 rgba(0,0,0,0.04);
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-}
-.card-title {
-  font-size: 14px;
-  color: #888;
-  margin-bottom: 8px;
-}
-.card-value {
-  font-size: 22px;
-  font-weight: bold;
-  color: #333;
-}
-.card-trend {
-  font-size: 13px;
-  margin-top: 4px;
-}
-.card-trend.up { color: #67C23A; }
-.card-trend.down { color: #F56C6C; }
-.dashboard-card.blue { border-left: 4px solid #409EFF; }
-.dashboard-card.green { border-left: 4px solid #67C23A; }
-.dashboard-card.yellow { border-left: 4px solid #E6A23C; }
-.dashboard-card.purple { border-left: 4px solid #909399; }
-.dashboard-card.red { border-left: 4px solid #F56C6C; }
-.dashboard-pie {
-  grid-row: 2 / 3;
-  grid-column: 1 / 2;
-  background: #fff;
-  border-radius: 8px;
-  padding: 24px 24px 8px 24px;
-  box-shadow: 0 2px 8px 0 rgba(0,0,0,0.04);
-}
-.dashboard-map {
-  grid-row: 2 / 3;
-  grid-column: 2 / 3;
-  background: #fff;
-  border-radius: 8px;
-  padding: 24px 24px 8px 24px;
-  box-shadow: 0 2px 8px 0 rgba(0,0,0,0.04);
-}
-.dashboard-heatmap {
-  grid-row: 2 / 3;
-  grid-column: 3 / 4;
+.statistics-item {
   background: #fff;
   border-radius: 8px;
   padding: 24px 24px 8px 24px;
