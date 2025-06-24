@@ -193,8 +193,8 @@
             <div v-show="chartCardExpanded">
               <div class="text-center mb-3" style="padding-top: 20px">
                 <div class="chart-title-center">
-                  <h2>航运运行图 （2024年3月份）</h2>
-                  <h4>国家能源集团航运公司–华中/神皖船舶运行图</h4>
+                  <h2>航运运行图（2024年第一季度）</h2>
+                  <h4>国家能源集团航运公司 – 福建公司</h4>
                 </div>
                 <div class="chart-legend">
                   <div class="legend-item">
@@ -203,7 +203,7 @@
                   </div>
                   <div class="legend-item">
                     <span class="legend-line" style="background-color: #0070C0"></span>
-                    <span class="legend-text">散货船计划线</span>
+                    <span class="legend-text">自有船计划线</span>
                   </div>
                   <div class="legend-item">
                     <span class="legend-line" style="background-color: #00B050"></span>
@@ -211,7 +211,7 @@
                   </div>
                   <div class="legend-item">
                     <span class="legend-line" style="background-color: #FF0000"></span>
-                    <span class="legend-text">散货船实际线</span>
+                    <span class="legend-text">自有船实际线</span>
                   </div>
                   <div class="legend-item">
                     <span class="legend-line" style="background-color: #FFA500"></span>
@@ -221,16 +221,19 @@
               </div>
               <div class="chart-edit-area mb-3 text-center" style="padding-right: 20px;">
                 <div class="d-flex justify-content-center">
-                  <div class="chart-main-area" style="flex-grow: 1; position: relative; min-height: 600px; padding-right: 50px; overflow-x: auto;">
-                    <div style="position: relative; overflow: visible;">
-                      <table 
-                        border="1"
-                        style="border-collapse: collapse; border: 2px solid #0070c0; table-layout: fixed;"
-                        id="mainTable"
-                        ref="mainTable"
-                      ></table>
-                      <div ref="svgContainer" class="svg-container"></div>
-                      <div ref="timelineLayer" class="timeline-layer"></div>
+                  <div style="width:100%;max-width:fit-content;position:relative;">
+                    <div id="table-number-labels" style="position:relative;height:24px;margin-bottom:2px;"></div>
+                    <div class="chart-main-area" style="flex-grow: 1; position: relative; min-height: 600px; padding-right: 50px; overflow-x: auto;">
+                      <div style="position: relative; overflow: visible;">
+                        <table 
+                          border="1"
+                          style="border-collapse: collapse; border: 2px solid #0070c0; table-layout: fixed;"
+                          id="mainTable"
+                          ref="mainTable"
+                        ></table>
+                        <div ref="svgContainer" class="svg-container"></div>
+                        <div ref="timelineLayer" class="timeline-layer"></div>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -247,6 +250,8 @@
 import { ref, reactive, onMounted, computed, nextTick } from 'vue';
 import { Search, Download, Refresh, ArrowUp, ArrowDown, WarningFilled, InfoFilled, CircleCheckFilled } from '@element-plus/icons-vue';
 import { useFormData } from '@/utils/use-form-data';
+import { drawRouteLine } from '@/utils/ship-route-draw';
+import { SHIP_ROUTE_COLORS } from '@/utils/ship-route-colors';
 
 defineOptions({ name: 'SeaOperation' });
 
@@ -445,8 +450,17 @@ const bannerWarning = computed(() => {
 });
 
 function createTable() {
-  const ports = ['天津', '黄骅', '社会港', '华中销售', '神皖能源'];
-  const states = ['交接|待离', '装船', '抵港|待装'];
+  const ports = ['天津', '黄骅', '社会港', '连江电厂', '福州电厂', '泉州电厂', '鸿山电厂'];
+  // 上面三个港口的状态
+  const statesMap = {
+    '天津': ['交接|待离', '装船', '抵港|待装'],
+    '黄骅': ['交接|待离', '装船', '抵港|待装'],
+    '社会港': ['交接|待离', '装船', '抵港|待装'],
+    '连江电厂': ['抵港|待泊', '卸船', '交接|离港'],
+    '福州电厂': ['抵港|待泊', '卸船', '交接|离港'],
+    '泉州电厂': ['抵港|待泊', '卸船', '交接|离港'],
+    '鸿山电厂': ['抵港|待泊', '卸船', '交接|离港']
+  };
   const table = mainTable.value;
   if (!table) return;
 
@@ -464,14 +478,26 @@ function createTable() {
   headerCell.textContent = '渤海湾-华中/华东';
   headerCell.className = 'table-cell region-header header-right-strong';
   headerCell.style.width = '160px';
+  // 右侧加粗
+  headerCell.style.borderRight = '2px solid #0070c0';
 
-  // 日期列
-  for (let i = 0; i < 32; i++) {
-    const isDash = (i + 1) % 10 === 0;
+  // 日期列（90列：1月31天，2月28天，3月31天）
+  for (let i = 0; i < 90; i++) {
+    // 只在31、59、89列右侧为2px实线
+    const isMonthSolid = (i === 31 || i === 59 || i === 89);
+    // 每月内每隔十天的虚线（不含月末）
+    let isTenDash = false;
+    if (i < 31 && (i + 1) % 10 === 0) isTenDash = true; // 1月
+    if (i >= 31 && i < 59 && ((i - 31 + 1) % 10 === 0)) isTenDash = true; // 2月
+    if (i >= 59 && (i - 59 + 1) % 10 === 0) isTenDash = true; // 3月
     const cell = headerRow.insertCell();
     cell.style.textAlign = 'center';
-    cell.style.width = '40px';
-    if (isDash) cell.style.borderRight = '2px dashed #0070c0';
+    cell.style.width = '15px';
+    if (isMonthSolid) {
+      cell.style.borderLeft = '2px solid #0070c0';
+    } else if (isTenDash) {
+      cell.style.borderRight = '2px dashed #0070c0';
+    }
     cell.className = 'empty-cell';
   }
 
@@ -482,6 +508,7 @@ function createTable() {
 
   ports.forEach((port) => {
     const isSpecialGap = (port === '社会港');
+    const states = statesMap[port];
     for (let i = 0; i < 3; i++) {
       const row = table.insertRow();
       row.style.height = '30px';
@@ -497,17 +524,31 @@ function createTable() {
         const stateCell = row.insertCell();
         stateCell.textContent = states[i];
         stateCell.className = 'table-cell status-col';
+        // 只加粗右侧边框
+        stateCell.style.borderRight = '2px solid #0070c0';
       } else {
         const stateCell = row.insertCell();
         stateCell.textContent = states[i];
         stateCell.className = 'table-cell status-col';
+        // 只加粗右侧边框
+        stateCell.style.borderRight = '2px solid #0070c0';
       }
 
-      for (let j = 0; j < 32; j++) {
+      // 日期单元格严格对齐表头
+      for (let j = 0; j < 90; j++) {
+        // 只在31、59、89列右侧为2px实线
+        const isMonthSolid = (j === 31 || j === 59 || j === 89);
+        // 每月内每隔十天的虚线（不含月末）
+        let isTenDash = false;
+        if (j < 31 && (j + 1) % 10 === 0) isTenDash = true; // 1月
+        if (j >= 31 && j < 59 && ((j - 31 + 1) % 10 === 0)) isTenDash = true; // 2月
+        if (j >= 59 && (j - 59 + 1) % 10 === 0) isTenDash = true; // 3月
         const cell = row.insertCell();
-        if ((j + 1) % 10 === 0) {
+        if (isMonthSolid) {
+          cell.style.borderLeft = '2px solid #0070c0';
+        } else if (isTenDash) {
           cell.style.borderRight = '2px dashed #0070c0';
-          cell.style.borderLeft = '1px dashed #0070c0';
+          cell.style.borderLeft = '1px solid #0070c0';
         }
         cell.className = 'empty-cell';
       }
@@ -526,17 +567,28 @@ function createTable() {
     if (isSpecialGap) {
       emptyRow.style.height = '120px';
     }
-    for(let k = 0; k < 35; k++) {
+    // 保证emptyRow日期部分和表头严格对齐
+    for(let k = 0; k < 93; k++) {
       const cell = emptyRow.insertCell();
-      const isDash = (k >= 2 && k < 34) && ((k - 1) % 10 === 0);
-      if (isDash) cell.style.borderRight = '2px dashed #0070C0';
-      if(k === 1) {
+      if (k === 1) {
         cell.className = 'table-cell empty-row-second-col';
-      } else if(k === 34) {
+        cell.style.borderRight = '2px solid #0070c0';
+      } else if (k === 92) {
         cell.className = 'table-cell last-col-left-strong';
         cell.style.width = '80px';
         cell.style.padding = '0 10px';
-      } else if(k >= 2 && k < 34) {
+      } else if (k >= 2 && k < 92) {
+        // 日期部分
+        const dateIdx = k - 2;
+        // 只在31、59、89列右侧为2px实线
+        const isMonthSolid = (dateIdx === 31 || dateIdx === 59 || dateIdx === 89);
+        // 每月内每隔十天的虚线（不含月末）
+        let isTenDash = false;
+        if (dateIdx < 31 && (dateIdx + 1) % 10 === 0) isTenDash = true; // 1月
+        if (dateIdx >= 31 && dateIdx < 59 && ((dateIdx - 31 + 1) % 10 === 0)) isTenDash = true; // 2月
+        if (dateIdx >= 59 && (dateIdx - 59 + 1) % 10 === 0) isTenDash = true; // 3月
+        if (isMonthSolid) cell.style.borderLeft = '2px solid #0070C0';
+        else if (isTenDash) cell.style.borderRight = '2px dashed #0070C0';
         cell.className = 'empty-cell';
       } else {
         cell.className = 'table-cell';
@@ -545,7 +597,10 @@ function createTable() {
   });
 
   // 在创建完表格后绘制运行线
-  drawShipRoute();
+  // drawShipRoute();
+  nextTick(() => {
+    renderNumberLabels();
+  });
 }
 
 // 绘制船舶运行线
@@ -564,196 +619,212 @@ function drawShipRoute() {
   svg.setAttribute('style', 'position: absolute; top: 0; left: 0; pointer-events: none; z-index: 1;');
   svgContainer.appendChild(svg);
 
-  const ports = ['天津', '黄骅', '社会港', '华中销售', '神皖能源'];
-  const states = ['交接|待离', '装船', '抵港|待装'];
+  // 港口和状态映射
+  const ports = ['天津', '黄骅', '社会港', '连江电厂', '福州电厂', '泉州电厂', '鸿山电厂'];
+  const statesMap = {
+    '天津': ['交接|待离', '装船', '抵港|待装'],
+    '黄骅': ['交接|待离', '装船', '抵港|待装'],
+    '社会港': ['交接|待离', '装船', '抵港|待装'],
+    '连江电厂': ['抵港|待泊', '卸船', '交接|离港'],
+    '福州电厂': ['抵港|待泊', '卸船', '交接|离港'],
+    '泉州电厂': ['抵港|待泊', '卸船', '交接|离港'],
+    '鸿山电厂': ['抵港|待泊', '卸船', '交接|离港']
+  };
 
-  // 计算单元格位置
-  function getCellPosition(port, state, day) {
-    const portIndex = ports.indexOf(port);
-    const stateIndex = states.indexOf(state);
-    const rowIndex = 1 + portIndex * 4 + stateIndex;
-    const colIndex = day + 1;
-    const row = table.rows[rowIndex];
-    if (!row) return null;
-    const cell = row.cells[colIndex];
-    if (!cell) return null;
-    const rect = cell.getBoundingClientRect();
-    const tableRect = table.getBoundingClientRect();
-    return {
-      x: rect.left - tableRect.left + rect.width / 2,
-      y: rect.top - tableRect.top + rect.height / 2
-    };
-  }
-
-  // 路径绘制函数
-  function drawRoute(routePoints, color, shipName, idx) {
-    let pathData = '';
-    routePoints.forEach((point, idx) => {
-      const pos = getCellPosition(point.port, point.state, point.day);
-      if (!pos) return;
-      if (idx === 0) {
-        pathData += `M ${pos.x} ${pos.y}`;
-      } else {
-        const prev = routePoints[idx - 1];
-        const prevPos = getCellPosition(prev.port, prev.state, prev.day);
-        if (!prevPos) return;
-        if (point.day === prev.day) {
-          pathData += ` L ${prevPos.x} ${pos.y} L ${pos.x} ${pos.y}`;
-        } else {
-          pathData += ` L ${pos.x} ${pos.y}`;
-        }
-      }
-    });
-    if (pathData) {
-      const group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-      const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-      path.setAttribute('d', pathData);
-      path.setAttribute('stroke', color);
-      path.setAttribute('fill', 'none');
-      path.setAttribute('data-route-idx', idx);
-      if (hoverRouteIdx.value === idx) {
-        path.setAttribute('stroke-width', '4');
-        path.setAttribute('stroke-opacity', '0.8');
-        path.setAttribute('filter', 'drop-shadow(0 0 4px #888)');
-      } else {
-        path.setAttribute('stroke-width', '2');
-        path.setAttribute('stroke-opacity', '1');
-        path.removeAttribute('filter');
-      }
-      group.appendChild(path);
-      // 船名
-      if (shipName) {
-        const first = routePoints[0];
-        const pos = getCellPosition(first.port, first.state, first.day);
-        if (pos) {
-          const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-          text.setAttribute('x', pos.x);
-          text.setAttribute('y', pos.y - 10);
-          text.setAttribute('text-anchor', 'middle');
-          text.setAttribute('fill', '#000');
-          text.setAttribute('font-size', '12px');
-          text.textContent = shipName;
-          group.appendChild(text);
-        }
-      }
-      // 悬停事件
-      group.setAttribute('style', 'pointer-events: auto; cursor: pointer;');
-      group.addEventListener('mouseenter', () => {
-        hoverRouteIdx.value = idx;
-        updateRouteHighlight();
-      });
-      group.addEventListener('mouseleave', () => {
-        hoverRouteIdx.value = null;
-        updateRouteHighlight();
-      });
-      svg.appendChild(group);
-    }
-  }
-
-  // 新增：只更新高亮，不重建SVG
-  function updateRouteHighlight() {
-    const svg = svgContainer.querySelector('svg');
-    if (!svg) return;
-    const paths = svg.querySelectorAll('path');
-    paths.forEach((path, i) => {
-      if (hoverRouteIdx.value === i) {
-        path.setAttribute('stroke-width', '4');
-        path.setAttribute('stroke-opacity', '0.8');
-        path.setAttribute('filter', 'drop-shadow(0 0 4px #888)');
-      } else {
-        path.setAttribute('stroke-width', '2');
-        path.setAttribute('stroke-opacity', '1');
-        path.removeAttribute('filter');
-      }
-    });
-  }
-
-  // 两条线的数据
+  // z自有船计划线1
   const routePoints1 = [
-    { port: '黄骅', state: '交接|待离', day: 1 },
-    { port: '黄骅', state: '交接|待离', day: 4 },
-    { port: '黄骅', state: '装船', day: 4 },
-    { port: '黄骅', state: '装船', day: 6 },
-    { port: '神皖能源', state: '装船', day: 13 },
-    { port: '神皖能源', state: '装船', day: 15 },
-    { port: '黄骅', state: '交接|待离', day: 23 },
-    { port: '黄骅', state: '交接|待离', day: 27 },
-    { port: '黄骅', state: '装船', day: 27 },
-    { port: '黄骅', state: '装船', day: 29 },
-    { port: '华中销售', state: '抵港|待装', day: 31 }
+    { port: '天津', state: '抵港|待装', day: 0, anchor: 'center' },
+    { port: '天津', state: '装船', day: 0, anchor: 'center' },
+    { port: '天津', state: '装船', day: 2, anchor: 'center' },
+    { port: '天津', state: '交接|待离', day: 2, anchor: 'center' },
+    { port: '天津', state: '抵港|待装', day: 2, anchor: 'bottom' },
+    { port: '鸿山电厂', state: '抵港|待泊', day: 7, anchor: 'top' },
+    { port: '鸿山电厂', state: '抵港|待泊', day: 7, anchor: 'center' },
+    { port: '鸿山电厂', state: '抵港|待泊', day: 8, anchor: 'center' },
+    { port: '鸿山电厂', state: '卸船', day: 8, anchor: 'center' },
+    { port: '鸿山电厂', state: '卸船', day: 12, anchor: 'center' },
+    { port: '鸿山电厂', state: '交接|离港', day: 12, anchor: 'center' },
+    { port: '鸿山电厂', state: '抵港|待泊', day: 12, anchor: 'top' }
   ];
+
   const routePoints2 = [
-    { port: '黄骅', state: '交接|待离', day: 1 },
-    { port: '黄骅', state: '交接|待离', day: 3 },
-    { port: '黄骅', state: '装船', day: 3 },
-    { port: '黄骅', state: '装船', day: 5 },
-    { port: '神皖能源', state: '装船', day: 12 },
-    { port: '神皖能源', state: '装船', day: 14 },
-    { port: '黄骅', state: '交接|待离', day: 22 },
-    { port: '黄骅', state: '交接|待离', day: 26 },
-    { port: '黄骅', state: '装船', day: 26 },
-    { port: '黄骅', state: '装船', day: 28 },
-    { port: '华中销售', state: '抵港|待装', day: 31 }
+    { port: '黄骅', state: '抵港|待装', day: 2, anchor: 'center' },
+    { port: '黄骅', state: '装船', day: 2, anchor: 'center' },
+    { port: '黄骅', state: '装船', day: 4, anchor: 'center' },
+    { port: '黄骅', state: '交接|待离', day: 4, anchor: 'center' },
+    { port: '黄骅', state: '抵港|待装', day: 4, anchor: 'bottom' },
+    { port: '福州电厂', state: '抵港|待泊', day: 10, anchor: 'top' },
+    { port: '福州电厂', state: '抵港|待泊', day: 10, anchor: 'center' },
+    { port: '福州电厂', state: '抵港|待泊', day: 12, anchor: 'center' },
+    { port: '福州电厂', state: '卸船', day: 12, anchor: 'center' },
+    { port: '福州电厂', state: '卸船', day: 16, anchor: 'center' },
+    { port: '福州电厂', state: '交接|离港', day: 16, anchor: 'center' },
+    { port: '福州电厂', state: '抵港|待泊', day: 16, anchor: 'top' }
   ];
 
-  // 第三条线：需求线（红色）
   const routePoints3 = [
-    { port: '天津', state: '交接|待离', day: 3 },
-    { port: '天津', state: '交接|待离', day: 5 },
-    { port: '天津', state: '装船', day: 5 },
-    { port: '天津', state: '装船', day: 7 },
-    { port: '华中销售', state: '抵港|待装', day: 15 },
-    { port: '华中销售', state: '装船', day: 15 },
-    { port: '华中销售', state: '装船', day: 17 }
+    { port: '黄骅', state: '抵港|待装', day: 10, anchor: 'center' },
+    { port: '黄骅', state: '装船', day: 10, anchor: 'center' },
+    { port: '黄骅', state: '装船', day: 12, anchor: 'center' },
+    { port: '黄骅', state: '交接|待离', day: 12, anchor: 'center' },
+    { port: '黄骅', state: '抵港|待装', day: 12, anchor: 'bottom' },
+    { port: '福州电厂', state: '抵港|待泊', day: 18, anchor: 'top' },
+    { port: '福州电厂', state: '抵港|待泊', day: 18, anchor: 'center' },
+    { port: '福州电厂', state: '抵港|待泊', day: 21, anchor: 'center' },
+    { port: '福州电厂', state: '卸船', day: 21, anchor: 'center' },
+    { port: '福州电厂', state: '卸船', day: 24, anchor: 'center' },
+    { port: '福州电厂', state: '交接|离港', day: 24, anchor: 'center' },
+    { port: '福州电厂', state: '抵港|待泊', day: 24, anchor: 'top' },
+    { port: '黄骅', state: '抵港|待装', day: 28, anchor: 'center' },
+    { port: '黄骅', state: '装船', day: 28, anchor: 'center' },
+    { port: '黄骅', state: '装船', day: 30, anchor: 'center' },
+    { port: '黄骅', state: '交接|待离', day: 30, anchor: 'center' },
+    { port: '黄骅', state: '抵港|待装', day: 30, anchor: 'bottom' },
+    { port: '福州电厂', state: '抵港|待泊', day: 36, anchor: 'top' },
+    { port: '福州电厂', state: '抵港|待泊', day: 36, anchor: 'center' },
+    { port: '福州电厂', state: '抵港|待泊', day: 39, anchor: 'center' },
+    { port: '福州电厂', state: '卸船', day: 39, anchor: 'center' },
+    { port: '福州电厂', state: '卸船', day: 41, anchor: 'center' },
+    { port: '福州电厂', state: '交接|离港', day: 41, anchor: 'center' },
+    { port: '福州电厂', state: '抵港|待泊', day: 41, anchor: 'top' }
   ];
-  // 第四条线：需求线（红色）
+
   const routePoints4 = [
-    { port: '黄骅', state: '交接|待离', day: 7 },
-    { port: '黄骅', state: '交接|待离', day: 9 },
-    { port: '黄骅', state: '装船', day: 9 },
-    { port: '黄骅', state: '装船', day: 11 },
-    { port: '神皖能源', state: '抵港|待装', day: 17 },
-    { port: '神皖能源', state: '装船', day: 17 },
-    { port: '神皖能源', state: '装船', day: 20 }
+    { port: '社会港', state: '抵港|待装', day: 12, anchor: 'center' },
+    { port: '社会港', state: '装船', day: 12, anchor: 'center' },
+    { port: '社会港', state: '装船', day: 14, anchor: 'center' },
+    { port: '社会港', state: '交接|待离', day: 14, anchor: 'center' },
+    { port: '社会港', state: '抵港|待装', day: 14, anchor: 'bottom' },
+    { port: '泉州电厂', state: '抵港|待泊', day: 20, anchor: 'top' },
+    { port: '泉州电厂', state: '抵港|待泊', day: 20, anchor: 'center' },
+    { port: '泉州电厂', state: '抵港|待泊', day: 23, anchor: 'center' },
+    { port: '泉州电厂', state: '卸船', day: 23, anchor: 'center' },
+    { port: '泉州电厂', state: '卸船', day: 26, anchor: 'center' },
+    { port: '泉州电厂', state: '交接|离港', day: 26, anchor: 'center' },
+    { port: '泉州电厂', state: '抵港|待泊', day: 26, anchor: 'top' },
+    { port: '天津', state: '抵港|待装', day: 30, anchor: 'center' },
+    { port: '天津', state: '装船', day: 30, anchor: 'center' },
+    { port: '天津', state: '装船', day: 32, anchor: 'center' },
+    { port: '天津', state: '交接|待离', day: 32, anchor: 'center' },
+    { port: '天津', state: '抵港|待装', day: 32, anchor: 'bottom' },
+    { port: '福州电厂', state: '抵港|待泊', day: 39, anchor: 'top' },
+    { port: '福州电厂', state: '抵港|待泊', day: 39, anchor: 'center' },
+    { port: '福州电厂', state: '抵港|待泊', day: 41, anchor: 'center' },
+    { port: '福州电厂', state: '卸船', day: 41, anchor: 'center' },
+    { port: '福州电厂', state: '卸船', day: 44, anchor: 'center' },
+    { port: '福州电厂', state: '交接|离港', day: 44, anchor: 'center' },
+    { port: '福州电厂', state: '抵港|待泊', day: 44, anchor: 'top' }
   ];
 
-  // 第五条线：租船计划线（绿色）
-  const routePoints5 = [
-    { port: '天津', state: '交接|待离', day: 15 },
-    { port: '天津', state: '交接|待离', day: 17 },
-    { port: '天津', state: '装船', day: 18 },
-    { port: '天津', state: '装船', day: 19 },
-    { port: '华中销售', state: '装船', day: 26 },
-    { port: '华中销售', state: '装船', day: 28 }
+  // 复制routePoints1~routePoints4，每个天数+40
+  const routePoints1b = [
+    { port: '天津', state: '抵港|待装', day: 40, anchor: 'center' },
+    { port: '天津', state: '装船', day: 40, anchor: 'center' },
+    { port: '天津', state: '装船', day: 42, anchor: 'center' },
+    { port: '天津', state: '交接|待离', day: 42, anchor: 'center' },
+    { port: '天津', state: '抵港|待装', day: 42, anchor: 'bottom' },
+    { port: '鸿山电厂', state: '抵港|待泊', day: 47, anchor: 'top' },
+    { port: '鸿山电厂', state: '抵港|待泊', day: 47, anchor: 'center' },
+    { port: '鸿山电厂', state: '抵港|待泊', day: 48, anchor: 'center' },
+    { port: '鸿山电厂', state: '卸船', day: 48, anchor: 'center' },
+    { port: '鸿山电厂', state: '卸船', day: 52, anchor: 'center' },
+    { port: '鸿山电厂', state: '交接|离港', day: 52, anchor: 'center' },
+    { port: '鸿山电厂', state: '抵港|待泊', day: 52, anchor: 'top' }
+  ];
+  const routePoints2b = [
+    { port: '黄骅', state: '抵港|待装', day: 42, anchor: 'center' },
+    { port: '黄骅', state: '装船', day: 42, anchor: 'center' },
+    { port: '黄骅', state: '装船', day: 44, anchor: 'center' },
+    { port: '黄骅', state: '交接|待离', day: 44, anchor: 'center' },
+    { port: '黄骅', state: '抵港|待装', day: 44, anchor: 'bottom' },
+    { port: '福州电厂', state: '抵港|待泊', day: 50, anchor: 'top' },
+    { port: '福州电厂', state: '抵港|待泊', day: 50, anchor: 'center' },
+    { port: '福州电厂', state: '抵港|待泊', day: 52, anchor: 'center' },
+    { port: '福州电厂', state: '卸船', day: 52, anchor: 'center' },
+    { port: '福州电厂', state: '卸船', day: 56, anchor: 'center' },
+    { port: '福州电厂', state: '交接|离港', day: 56, anchor: 'center' },
+    { port: '福州电厂', state: '抵港|待泊', day: 56, anchor: 'top' }
+  ];
+  const routePoints3b = [
+    { port: '黄骅', state: '抵港|待装', day: 50, anchor: 'center' },
+    { port: '黄骅', state: '装船', day: 50, anchor: 'center' },
+    { port: '黄骅', state: '装船', day: 52, anchor: 'center' },
+    { port: '黄骅', state: '交接|待离', day: 52, anchor: 'center' },
+    { port: '黄骅', state: '抵港|待装', day: 52, anchor: 'bottom' },
+    { port: '福州电厂', state: '抵港|待泊', day: 58, anchor: 'top' },
+    { port: '福州电厂', state: '抵港|待泊', day: 58, anchor: 'center' },
+    { port: '福州电厂', state: '抵港|待泊', day: 61, anchor: 'center' },
+    { port: '福州电厂', state: '卸船', day: 61, anchor: 'center' },
+    { port: '福州电厂', state: '卸船', day: 64, anchor: 'center' },
+    { port: '福州电厂', state: '交接|离港', day: 64, anchor: 'center' },
+    { port: '福州电厂', state: '抵港|待泊', day: 64, anchor: 'top' },
+    { port: '黄骅', state: '抵港|待装', day: 68, anchor: 'center' },
+    { port: '黄骅', state: '装船', day: 68, anchor: 'center' },
+    { port: '黄骅', state: '装船', day: 70, anchor: 'center' },
+    { port: '黄骅', state: '交接|待离', day: 70, anchor: 'center' },
+    { port: '黄骅', state: '抵港|待装', day: 70, anchor: 'bottom' },
+    { port: '福州电厂', state: '抵港|待泊', day: 76, anchor: 'top' },
+    { port: '福州电厂', state: '抵港|待泊', day: 76, anchor: 'center' },
+    { port: '福州电厂', state: '抵港|待泊', day: 79, anchor: 'center' },
+    { port: '福州电厂', state: '卸船', day: 79, anchor: 'center' },
+    { port: '福州电厂', state: '卸船', day: 81, anchor: 'center' },
+    { port: '福州电厂', state: '交接|离港', day: 81, anchor: 'center' },
+    { port: '福州电厂', state: '抵港|待泊', day: 81, anchor: 'top' }
+  ];
+  const routePoints4b = [
+    { port: '黄骅', state: '抵港|待装', day: 55, anchor: 'center' },
+    { port: '黄骅', state: '装船', day: 55, anchor: 'center' },
+    { port: '黄骅', state: '装船', day: 57, anchor: 'center' },
+    { port: '黄骅', state: '交接|待离', day: 57, anchor: 'center' },
+    { port: '黄骅', state: '抵港|待装', day: 57, anchor: 'bottom' },
+    { port: '泉州电厂', state: '抵港|待泊', day: 63, anchor: 'top' },
+    { port: '泉州电厂', state: '抵港|待泊', day: 63, anchor: 'center' },
+    { port: '泉州电厂', state: '抵港|待泊', day: 66, anchor: 'center' },
+    { port: '泉州电厂', state: '卸船', day: 66, anchor: 'center' },
+    { port: '泉州电厂', state: '卸船', day: 69, anchor: 'center' },
+    { port: '泉州电厂', state: '交接|离港', day: 69, anchor: 'center' },
+    { port: '泉州电厂', state: '抵港|待泊', day: 69, anchor: 'top' },
+    { port: '天津', state: '抵港|待装', day: 73, anchor: 'center' },
+    { port: '天津', state: '装船', day: 73, anchor: 'center' },
+    { port: '天津', state: '装船', day: 75, anchor: 'center' },
+    { port: '天津', state: '交接|待离', day: 75, anchor: 'center' },
+    { port: '天津', state: '抵港|待装', day: 75, anchor: 'bottom' },
+    { port: '福州电厂', state: '抵港|待泊', day: 82, anchor: 'top' },
+    { port: '福州电厂', state: '抵港|待泊', day: 82, anchor: 'center' },
+    { port: '福州电厂', state: '抵港|待泊', day: 84, anchor: 'center' },
+    { port: '福州电厂', state: '卸船', day: 84, anchor: 'center' },
+    { port: '福州电厂', state: '卸船', day: 87, anchor: 'center' },
+    { port: '福州电厂', state: '交接|离港', day: 87, anchor: 'center' },
+    { port: '福州电厂', state: '抵港|待泊', day: 87, anchor: 'top' }
   ];
 
-  // 绘制五条线，前两条加船名，租船计划线也加船名
-  drawRoute(routePoints1, '#0070C0', '国电15', 0); // 散货船计划线
-  drawRoute(routePoints2, '#FF0000', '国电15', 1); // 散货船实际线（红色）
-  drawRoute(routePoints3, '#888888', null, 2); // 需求线（灰色）
-  drawRoute(routePoints4, '#888888', null, 3); // 需求线（灰色）
-  drawRoute(routePoints5, '#FFA500', '租船1', 4); // 租船实际线（橙色）
-
-  nextTick(() => {
-    drawTimelineLayer();
-  });
+  drawRouteLine(svg, table, routePoints1, { color: SHIP_ROUTE_COLORS.plan1, width: 2, ports, statesMap });
+  drawRouteLine(svg, table, routePoints2, { color: SHIP_ROUTE_COLORS.plan2, width: 2, ports, statesMap });
+  drawRouteLine(svg, table, routePoints3, { color: SHIP_ROUTE_COLORS.plan1, width: 2, ports, statesMap });
+  drawRouteLine(svg, table, routePoints4, { color: SHIP_ROUTE_COLORS.plan2, width: 2, ports, statesMap });
+  drawRouteLine(svg, table, routePoints1b, { color: SHIP_ROUTE_COLORS.plan1, width: 2, ports, statesMap });
+  drawRouteLine(svg, table, routePoints2b, { color: SHIP_ROUTE_COLORS.plan1, width: 2, ports, statesMap });
+  drawRouteLine(svg, table, routePoints3b, { color: SHIP_ROUTE_COLORS.plan1, width: 2, ports, statesMap });
+  drawRouteLine(svg, table, routePoints4b, { color: SHIP_ROUTE_COLORS.demand, width: 2, ports, statesMap });
 }
 
 function drawTimelineLayer() {
   const table = mainTable.value;
   const layer = timelineLayer.value;
   if (!table || !layer) return;
-  // 获取第25天那一列的x坐标
-  const day = 25;
+  // 当前时刻线在第54列
+  const day = 53; // 索引从0开始，第54列
+  // 用表头第54列的left
+  const headerCell = table.rows[0]?.cells[day + 1];
+  const tableRect = table.getBoundingClientRect();
+  if (!headerCell) return;
+  const x = headerCell.getBoundingClientRect().left - tableRect.left;
   // 取表格最上面和最下面的cell
   const topCell = table.rows[1]?.cells[day + 1];
   const bottomCell = table.rows[table.rows.length - 2]?.cells[day + 1];
   if (!topCell || !bottomCell) return;
-  const tableRect = table.getBoundingClientRect();
   const topRect = topCell.getBoundingClientRect();
   const bottomRect = bottomCell.getBoundingClientRect();
-  // 计算线的x、y
-  const x = topRect.left - tableRect.left + topRect.width / 2;
   const y1 = topRect.top - tableRect.top;
   const y2 = bottomRect.top - tableRect.top + bottomRect.height;
   // 设置layer样式
@@ -761,18 +832,26 @@ function drawTimelineLayer() {
     <div style="position:absolute;left:${x - 30}px;top:${y1 - 24}px;color:#FF0000;font-size:13px;font-weight:bold;z-index:11;pointer-events:none;">当前时刻</div>`;
 }
 
+function syncNumberLabelsScroll() {
+  const chartArea = document.querySelector('.chart-main-area');
+  const numberLabels = document.getElementById('table-number-labels');
+  if (chartArea && numberLabels) {
+    numberLabels.style.left = -chartArea.scrollLeft + 'px';
+  }
+}
+
 onMounted(() => {
   createTable();
-  // 确保在表格渲染完成后绘制线条
   setTimeout(() => {
     drawShipRoute();
+    renderNumberLabels();
+    syncNumberLabelsScroll();
+    // 监听横向滚动
+    const chartArea = document.querySelector('.chart-main-area');
+    if (chartArea) {
+      chartArea.addEventListener('scroll', syncNumberLabelsScroll);
+    }
   }, 100);
-});
-
-// 添加窗口大小改变时的重绘
-window.addEventListener('resize', () => {
-  drawShipRoute();
-  drawTimelineLayer();
 });
 
 function locateOnChart(routeIdx) {
@@ -831,6 +910,52 @@ function bannerIcon(severity) {
   if (severity === 'low') return CircleCheckFilled;
   return InfoFilled;
 }
+
+function renderNumberLabels() {
+  const table = mainTable.value;
+  if (!table) return;
+  const labels = [
+    { col: 0, text: '1' },
+    { col: 31, text: '2' },
+    { col: 59, text: '3' },
+    { col: 90, text: '4' }
+  ];
+  const container = document.getElementById('table-number-labels');
+  if (!container) return;
+  container.innerHTML = '';
+  container.style.position = 'relative';
+  container.style.width = table.offsetWidth + 'px';
+  container.style.height = '24px';
+  container.style.pointerEvents = 'none';
+
+  labels.forEach(label => {
+    const cell = table.rows[0].cells[label.col];
+    if (!cell) return;
+    const rect = cell.getBoundingClientRect();
+    const tableRect = table.getBoundingClientRect();
+    const x = rect.left - tableRect.left + rect.width;
+    const div = document.createElement('div');
+    div.textContent = label.text;
+    div.style.position = 'absolute';
+    div.style.left = `${x - 10}px`;
+    div.style.top = '0';
+    div.style.width = '20px';
+    div.style.textAlign = 'center';
+    div.style.fontWeight = 'bold';
+    div.style.fontSize = '16px';
+    div.style.color = '#0070c0';
+    container.appendChild(div);
+  });
+  // 初始对齐
+  syncNumberLabelsScroll();
+}
+
+window.addEventListener('resize', () => {
+  drawShipRoute();
+  drawTimelineLayer();
+  renderNumberLabels();
+  syncNumberLabelsScroll();
+});
 </script>
 
 <style lang="scss" scoped>
