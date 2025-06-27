@@ -252,6 +252,7 @@ import { Search, Download, Refresh, ArrowUp, ArrowDown, WarningFilled, InfoFille
 import { useFormData } from '@/utils/use-form-data';
 import { drawRouteLine } from '@/utils/ship-route-draw';
 import { SHIP_ROUTE_COLORS } from '@/utils/ship-route-colors';
+import { createShipRouteTable } from '@/utils/ship-route-table';
 
 defineOptions({ name: 'SeaOperation' });
 
@@ -383,46 +384,55 @@ const warnings = ref([
     id: 1,
     severity: 'high',
     type: '气象',
-    summary: '台风预警',
-    details: '预计24小时内有台风影响天津港。',
-    time: '2024-06-01 10:00',
+    summary: '渤海湾大风预警',
+    details: '预计48小时内渤海湾将有8-9级大风，影响天津港和黄骅港船舶进出港。建议国电15、国电16、租船1等船舶调整靠泊计划。',
+    time: '2024-02-18 08:30',
     target: null
   },
   {
     id: 2,
     severity: 'medium',
     type: '设备',
-    summary: '设备故障',
-    details: '黄骅港装船设备临时检修。',
-    time: '2024-06-01 09:00',
-    target: null
+    summary: '黄骅港装船设备故障',
+    details: '黄骅港3号装船机突发故障，预计维修时间6小时。可能影响国电16、国电17的装船进度。',
+    time: '2024-02-18 07:15',
+    target: { ship: '国电16', routeIdx: 1 }
   },
   {
     id: 3,
     severity: 'medium',
     type: '延误',
-    summary: '船舶延误',
-    details: '国电15延误，预计晚到港2天。',
-    time: '2024-06-01 08:00',
-    target: { ship: '国电15', routeIdx: 0 }
+    summary: '国电18卸船延误',
+    details: '国电18在鸿山电厂卸船进度较慢，预计比计划晚1天完成。可能影响后续航次安排。',
+    time: '2024-02-18 06:45',
+    target: { ship: '国电18', routeIdx: 5 }
   },
   {
     id: 4,
     severity: 'low',
     type: '拥堵',
-    summary: '天津港拥堵',
-    details: '天津港排队时间增加，预计影响国电15。',
-    time: '2024-06-01 07:00',
+    summary: '天津港排队时间增加',
+    details: '天津港船舶排队时间增加至12小时，建议国电15、租船1提前安排靠泊申请。',
+    time: '2024-02-18 06:00',
     target: { ship: '国电15', routeIdx: 0 }
   },
   {
     id: 5,
     severity: 'info',
     type: '计划变更',
-    summary: '租船1计划调整',
-    details: '租船1计划临时调整，预计提前1天到港。',
-    time: '2024-06-01 06:00',
-    target: { ship: '租船1', routeIdx: 4 }
+    summary: '国电19计划调整',
+    details: '国电19计划提前1天到福州电厂，预计第50天抵港。请相关方做好接卸准备。',
+    time: '2024-02-18 05:30',
+    target: { ship: '国电19', routeIdx: 6 }
+  },
+  {
+    id: 6,
+    severity: 'low',
+    type: '天气',
+    summary: '福州地区雾霾天气',
+    details: '福州地区出现雾霾天气，能见度降低，可能影响国电19、国电20的靠泊作业。',
+    time: '2024-02-18 05:00',
+    target: { ship: '国电19', routeIdx: 6 }
   }
 ]);
 const severityTypeMap = {
@@ -450,150 +460,18 @@ const bannerWarning = computed(() => {
 });
 
 function createTable() {
-  const ports = ['天津', '黄骅', '社会港', '连江电厂', '福州电厂', '泉州电厂', '鸿山电厂'];
-  // 上面三个港口的状态
-  const statesMap = {
-    '天津': ['交接|待离', '装船', '抵港|待装'],
-    '黄骅': ['交接|待离', '装船', '抵港|待装'],
-    '社会港': ['交接|待离', '装船', '抵港|待装'],
-    '连江电厂': ['抵港|待泊', '卸船', '交接|离港'],
-    '福州电厂': ['抵港|待泊', '卸船', '交接|离港'],
-    '泉州电厂': ['抵港|待泊', '卸船', '交接|离港'],
-    '鸿山电厂': ['抵港|待泊', '卸船', '交接|离港']
-  };
   const table = mainTable.value;
   if (!table) return;
 
-  // 清空表格内容
-  while (table.firstChild) {
-    table.removeChild(table.firstChild);
-  }
-  table.style.width = '100%';
-  table.style.tableLayout = 'fixed';
-
-  // 表头
-  const headerRow = table.insertRow();
-  const headerCell = headerRow.insertCell();
-  headerCell.colSpan = 2;
-  headerCell.textContent = '渤海湾-华中/华东';
-  headerCell.className = 'table-cell region-header header-right-strong';
-  headerCell.style.width = '160px';
-  // 右侧加粗
-  headerCell.style.borderRight = '2px solid #0070c0';
-
-  // 日期列（90列：1月31天，2月28天，3月31天）
-  for (let i = 0; i < 90; i++) {
-    // 只在31、59、89列右侧为2px实线
-    const isMonthSolid = (i === 31 || i === 59 || i === 89);
-    // 每月内每隔十天的虚线（不含月末）
-    let isTenDash = false;
-    if (i < 31 && (i + 1) % 10 === 0) isTenDash = true; // 1月
-    if (i >= 31 && i < 59 && ((i - 31 + 1) % 10 === 0)) isTenDash = true; // 2月
-    if (i >= 59 && (i - 59 + 1) % 10 === 0) isTenDash = true; // 3月
-    const cell = headerRow.insertCell();
-    cell.style.textAlign = 'center';
-    cell.style.width = '15px';
-    if (isMonthSolid) {
-      cell.style.borderLeft = '2px solid #0070c0';
-    } else if (isTenDash) {
-      cell.style.borderRight = '2px dashed #0070c0';
-    }
-    cell.className = 'empty-cell';
-  }
-
-  const northPortCell = headerRow.insertCell();
-  northPortCell.textContent = '北方装港';
-  northPortCell.className = 'table-cell last-col-left-strong';
-  northPortCell.style.width = '80px';
-
-  ports.forEach((port) => {
-    const isSpecialGap = (port === '社会港');
-    const states = statesMap[port];
-    for (let i = 0; i < 3; i++) {
-      const row = table.insertRow();
-      row.style.height = '30px';
-      if (i === 0) row.classList.add('top-border-strong');
-      if (i === 2) row.classList.add('bottom-border-strong');
-
-      if (i === 0) {
-        const portCell = row.insertCell();
-        portCell.rowSpan = 3;
-        portCell.textContent = port;
-        portCell.className = 'table-cell first-col-strong';
-
-        const stateCell = row.insertCell();
-        stateCell.textContent = states[i];
-        stateCell.className = 'table-cell status-col';
-        // 只加粗右侧边框
-        stateCell.style.borderRight = '2px solid #0070c0';
-      } else {
-        const stateCell = row.insertCell();
-        stateCell.textContent = states[i];
-        stateCell.className = 'table-cell status-col';
-        // 只加粗右侧边框
-        stateCell.style.borderRight = '2px solid #0070c0';
-      }
-
-      // 日期单元格严格对齐表头
-      for (let j = 0; j < 90; j++) {
-        // 只在31、59、89列右侧为2px实线
-        const isMonthSolid = (j === 31 || j === 59 || j === 89);
-        // 每月内每隔十天的虚线（不含月末）
-        let isTenDash = false;
-        if (j < 31 && (j + 1) % 10 === 0) isTenDash = true; // 1月
-        if (j >= 31 && j < 59 && ((j - 31 + 1) % 10 === 0)) isTenDash = true; // 2月
-        if (j >= 59 && (j - 59 + 1) % 10 === 0) isTenDash = true; // 3月
-        const cell = row.insertCell();
-        if (isMonthSolid) {
-          cell.style.borderLeft = '2px solid #0070c0';
-        } else if (isTenDash) {
-          cell.style.borderRight = '2px dashed #0070c0';
-          cell.style.borderLeft = '1px solid #0070c0';
-        }
-        cell.className = 'empty-cell';
-      }
-      if (i === 0) {
-        const mergeCell = row.insertCell();
-        mergeCell.rowSpan = 3;
-        mergeCell.textContent = port;
-        mergeCell.className = 'table-cell last-col-strong last-col-left-strong';
-        mergeCell.style.width = '80px';
-        mergeCell.style.padding = '0 10px';
-      }
-    }
-
-    const emptyRow = table.insertRow();
-    emptyRow.classList.add('empty-row');
-    if (isSpecialGap) {
-      emptyRow.style.height = '120px';
-    }
-    // 保证emptyRow日期部分和表头严格对齐
-    for(let k = 0; k < 93; k++) {
-      const cell = emptyRow.insertCell();
-      if (k === 1) {
-        cell.className = 'table-cell empty-row-second-col';
-        cell.style.borderRight = '2px solid #0070c0';
-      } else if (k === 92) {
-        cell.className = 'table-cell last-col-left-strong';
-        cell.style.width = '80px';
-        cell.style.padding = '0 10px';
-      } else if (k >= 2 && k < 92) {
-        // 日期部分
-        const dateIdx = k - 2;
-        // 只在31、59、89列右侧为2px实线
-        const isMonthSolid = (dateIdx === 31 || dateIdx === 59 || dateIdx === 89);
-        // 每月内每隔十天的虚线（不含月末）
-        let isTenDash = false;
-        if (dateIdx < 31 && (dateIdx + 1) % 10 === 0) isTenDash = true; // 1月
-        if (dateIdx >= 31 && dateIdx < 59 && ((dateIdx - 31 + 1) % 10 === 0)) isTenDash = true; // 2月
-        if (dateIdx >= 59 && (dateIdx - 59 + 1) % 10 === 0) isTenDash = true; // 3月
-        if (isMonthSolid) cell.style.borderLeft = '2px solid #0070C0';
-        else if (isTenDash) cell.style.borderRight = '2px dashed #0070C0';
-        cell.className = 'empty-cell';
-      } else {
-        cell.className = 'table-cell';
-      }
-    }
+  // 使用新的表格创建函数
+  const result = createShipRouteTable(table, {
+    title: '渤海湾-华中/华东',
+    loadingPorts: ['天津', '黄骅', '社会港'],
+    unloadingPorts: ['连江电厂', '福州电厂', '泉州电厂', '鸿山电厂'],
+    days: 90,
+    specialGaps: { '社会港': 120 },
+    monthDividers: [31, 59, 89],
+    tenDayDividers: 10
   });
 
   // 在创建完表格后绘制运行线
@@ -647,6 +525,21 @@ function drawShipRoute() {
     { port: '鸿山电厂', state: '抵港|待泊', day: 12, anchor: 'top' }
   ];
 
+  const routePoints2_ = [
+    { port: '黄骅', state: '抵港|待装', day: 2, anchor: 'center' },
+    { port: '黄骅', state: '装船', day: 2, anchor: 'center' },
+    { port: '黄骅', state: '装船', day: 3, anchor: 'center' },
+    { port: '黄骅', state: '交接|待离', day: 3, anchor: 'center' },
+    { port: '黄骅', state: '抵港|待装', day: 3, anchor: 'bottom' },
+    { port: '福州电厂', state: '抵港|待泊', day: 9, anchor: 'top' },
+    { port: '福州电厂', state: '抵港|待泊', day: 9, anchor: 'center' },
+    { port: '福州电厂', state: '抵港|待泊', day: 11, anchor: 'center' },
+    { port: '福州电厂', state: '卸船', day: 11, anchor: 'center' },
+    { port: '福州电厂', state: '卸船', day: 15, anchor: 'center' },
+    { port: '福州电厂', state: '交接|离港', day: 15, anchor: 'center' },
+    { port: '福州电厂', state: '抵港|待泊', day: 15, anchor: 'top' }
+  ];
+
   const routePoints2 = [
     { port: '黄骅', state: '抵港|待装', day: 2, anchor: 'center' },
     { port: '黄骅', state: '装船', day: 2, anchor: 'center' },
@@ -687,6 +580,33 @@ function drawShipRoute() {
     { port: '福州电厂', state: '卸船', day: 41, anchor: 'center' },
     { port: '福州电厂', state: '交接|离港', day: 41, anchor: 'center' },
     { port: '福州电厂', state: '抵港|待泊', day: 41, anchor: 'top' }
+  ];
+
+  const routePoints3_ = [
+    { port: '黄骅', state: '抵港|待装', day: 10, anchor: 'center' },
+    { port: '黄骅', state: '装船', day: 10, anchor: 'center' },
+    { port: '黄骅', state: '装船', day: 12, anchor: 'center' },
+    { port: '黄骅', state: '交接|待离', day: 12, anchor: 'center' },
+    { port: '黄骅', state: '抵港|待装', day: 12, anchor: 'bottom' },
+    { port: '福州电厂', state: '抵港|待泊', day: 19, anchor: 'top' },
+    { port: '福州电厂', state: '抵港|待泊', day: 19, anchor: 'center' },
+    { port: '福州电厂', state: '抵港|待泊', day: 22, anchor: 'center' },
+    { port: '福州电厂', state: '卸船', day: 22, anchor: 'center' },
+    { port: '福州电厂', state: '卸船', day: 26, anchor: 'center' },
+    { port: '福州电厂', state: '交接|离港', day: 26, anchor: 'center' },
+    { port: '福州电厂', state: '抵港|待泊', day: 26, anchor: 'top' },
+    { port: '黄骅', state: '抵港|待装', day: 30, anchor: 'center' },
+    { port: '黄骅', state: '装船', day: 30, anchor: 'center' },
+    { port: '黄骅', state: '装船', day: 31, anchor: 'center' },
+    { port: '黄骅', state: '交接|待离', day: 31, anchor: 'center' },
+    { port: '黄骅', state: '抵港|待装', day: 31, anchor: 'bottom' },
+    { port: '福州电厂', state: '抵港|待泊', day: 37, anchor: 'top' },
+    { port: '福州电厂', state: '抵港|待泊', day: 37, anchor: 'center' },
+    { port: '福州电厂', state: '抵港|待泊', day: 40, anchor: 'center' },
+    { port: '福州电厂', state: '卸船', day: 40, anchor: 'center' },
+    { port: '福州电厂', state: '卸船', day: 42, anchor: 'center' },
+    { port: '福州电厂', state: '交接|离港', day: 42, anchor: 'center' },
+    { port: '福州电厂', state: '抵港|待泊', day: 42, anchor: 'top' }
   ];
 
   const routePoints4 = [
@@ -798,23 +718,25 @@ function drawShipRoute() {
     { port: '福州电厂', state: '抵港|待泊', day: 87, anchor: 'top' }
   ];
 
-  drawRouteLine(svg, table, routePoints1, { color: SHIP_ROUTE_COLORS.plan1, width: 2, ports, statesMap });
-  drawRouteLine(svg, table, routePoints2, { color: SHIP_ROUTE_COLORS.plan2, width: 2, ports, statesMap });
-  drawRouteLine(svg, table, routePoints3, { color: SHIP_ROUTE_COLORS.plan1, width: 2, ports, statesMap });
-  drawRouteLine(svg, table, routePoints4, { color: SHIP_ROUTE_COLORS.plan2, width: 2, ports, statesMap });
-  drawRouteLine(svg, table, routePoints1b, { color: SHIP_ROUTE_COLORS.plan1, width: 2, ports, statesMap });
-  drawRouteLine(svg, table, routePoints2b, { color: SHIP_ROUTE_COLORS.plan1, width: 2, ports, statesMap });
-  drawRouteLine(svg, table, routePoints3b, { color: SHIP_ROUTE_COLORS.plan1, width: 2, ports, statesMap });
-  drawRouteLine(svg, table, routePoints4b, { color: SHIP_ROUTE_COLORS.demand, width: 2, ports, statesMap });
+  drawRouteLine(svg, table, routePoints2_, { color: SHIP_ROUTE_COLORS.plan1, width: 2, ports, statesMap, shipName: '国电16', isPlan: true, currentDay: 49 });
+  drawRouteLine(svg, table, routePoints1, { color: SHIP_ROUTE_COLORS.actual1, width: 2, ports, statesMap, shipName: '国电15' });
+  drawRouteLine(svg, table, routePoints2, { color: SHIP_ROUTE_COLORS.actual1, width: 2, ports, statesMap, shipName: '国电16' });
+  drawRouteLine(svg, table, routePoints3, { color: SHIP_ROUTE_COLORS.actual2, width: 2, ports, statesMap, shipName: '国电17' });
+  drawRouteLine(svg, table, routePoints3_, { color: SHIP_ROUTE_COLORS.plan2, width: 2, ports, statesMap, shipName: '国电17', isPlan: true, currentDay: 49 });
+  drawRouteLine(svg, table, routePoints4, { color: SHIP_ROUTE_COLORS.actual1, width: 2, ports, statesMap, shipName: '租船1' });
+  drawRouteLine(svg, table, routePoints1b, { color: SHIP_ROUTE_COLORS.actual2, width: 2, ports, statesMap, shipName: '国电18' });
+  drawRouteLine(svg, table, routePoints2b, { color: SHIP_ROUTE_COLORS.plan1, width: 2, ports, statesMap, shipName: '国电19', isPlan: true, currentDay: 49 });
+  drawRouteLine(svg, table, routePoints3b, { color: SHIP_ROUTE_COLORS.plan1, width: 2, ports, statesMap, shipName: '国电20', isPlan: true, currentDay: 49 });
+  drawRouteLine(svg, table, routePoints4b, { color: SHIP_ROUTE_COLORS.demand, width: 2, ports, statesMap, shipName: '租船2' });
 }
 
 function drawTimelineLayer() {
   const table = mainTable.value;
   const layer = timelineLayer.value;
   if (!table || !layer) return;
-  // 当前时刻线在第54列
-  const day = 53; // 索引从0开始，第54列
-  // 用表头第54列的left
+  // 当前时刻线在第50列
+  const day = 49; // 索引从0开始，第50列
+  // 用表头第50列的left
   const headerCell = table.rows[0]?.cells[day + 1];
   const tableRect = table.getBoundingClientRect();
   if (!headerCell) return;
