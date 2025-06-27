@@ -465,7 +465,8 @@ function createTable() {
 
   // 使用新的表格创建函数
   const result = createShipRouteTable(table, {
-    title: '渤海湾-华中/华东',
+    title: '福建公司',
+    rightTitle: '北方装港',
     loadingPorts: ['天津', '黄骅', '社会港'],
     unloadingPorts: ['连江电厂', '福州电厂', '泉州电厂', '鸿山电厂'],
     days: 90,
@@ -511,18 +512,20 @@ function drawShipRoute() {
 
   // z自有船计划线1
   const routePoints1 = [
-    { port: '天津', state: '抵港|待装', day: 0, anchor: 'center' },
-    { port: '天津', state: '装船', day: 0, anchor: 'center' },
-    { port: '天津', state: '装船', day: 2, anchor: 'center' },
-    { port: '天津', state: '交接|待离', day: 2, anchor: 'center' },
-    { port: '天津', state: '抵港|待装', day: 2, anchor: 'bottom' },
-    { port: '鸿山电厂', state: '抵港|待泊', day: 7, anchor: 'top' },
-    { port: '鸿山电厂', state: '抵港|待泊', day: 7, anchor: 'center' },
-    { port: '鸿山电厂', state: '抵港|待泊', day: 8, anchor: 'center' },
-    { port: '鸿山电厂', state: '卸船', day: 8, anchor: 'center' },
-    { port: '鸿山电厂', state: '卸船', day: 12, anchor: 'center' },
-    { port: '鸿山电厂', state: '交接|离港', day: 12, anchor: 'center' },
-    { port: '鸿山电厂', state: '抵港|待泊', day: 12, anchor: 'top' }
+    { port: '天津', state: '抵港|待装', day: 0, hour: 2, anchor: 'center' },
+    { port: '天津', state: '装船', day: 0, hour: 2, anchor: 'center' },
+    { port: '天津', state: '装船', day: 2, hour: 2, anchor: 'center' },
+    { port: '天津', state: '交接|待离', day: 2, hour: 2, anchor: 'center' },
+    { port: '天津', state: '交接|待离', day: 2, hour: 12, anchor: 'center' },
+    { port: '天津', state: '抵港|待装', day: 2, hour: 12, anchor: 'bottom' },
+    { port: '鸿山电厂', state: '抵港|待泊', day: 7, hour: 2, anchor: 'top' },
+    { port: '鸿山电厂', state: '抵港|待泊', day: 7, hour: 2, anchor: 'center' },
+    { port: '鸿山电厂', state: '抵港|待泊', day: 8, hour: 2, anchor: 'center' },
+    { port: '鸿山电厂', state: '卸船', day: 8, hour: 2, anchor: 'center' },
+    { port: '鸿山电厂', state: '卸船', day: 12, hour: 2, anchor: 'center' },
+    { port: '鸿山电厂', state: '交接|离港', day: 12, hour: 2, anchor: 'center' },
+    { port: '鸿山电厂', state: '交接|离港', day: 12, hour: 12, anchor: 'center' },
+    { port: '鸿山电厂', state: '抵港|待泊', day: 12, hour: 12, anchor: 'top' }
   ];
 
   const routePoints2_ = [

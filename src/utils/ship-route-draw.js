@@ -7,7 +7,7 @@ export function drawRouteLine(svg, table, points, options = {}) {
   let pathData = '';
   let firstPos = null;
   points.forEach((point, idx) => {
-    const pos = getCellPosition(table, point.port, point.state, point.day, point.anchor, ports, statesMap);
+    const pos = getCellPosition(table, point.port, point.state, point.day, point.anchor, ports, statesMap, point.hour);
     if (!pos) return;
     if (idx === 0) {
       pathData += `M ${pos.x} ${pos.y}`;

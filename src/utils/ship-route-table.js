@@ -3,6 +3,7 @@
  * @param {HTMLElement} tableElement - 表格DOM元素
  * @param {Object} options - 配置选项
  * @param {string} options.title - 表格标题，如"渤海湾-华中/华东"
+ * @param {string} options.rightTitle - 右侧标题，如"装货港"或"卸货港"
  * @param {Array} options.loadingPorts - 装货港口列表，如['天津', '黄骅', '社会港']
  * @param {Array} options.unloadingPorts - 卸货港口列表，如['连江电厂', '福州电厂', '泉州电厂', '鸿山电厂']
  * @param {number} options.days - 时间轴长度（天数）
@@ -13,6 +14,7 @@
 export function createShipRouteTable(tableElement, options = {}) {
   const {
     title = '运行图',
+    rightTitle = '',
     loadingPorts = [],
     unloadingPorts = [],
     days = 90,
@@ -49,10 +51,12 @@ export function createShipRouteTable(tableElement, options = {}) {
   const headerRow = tableElement.insertRow();
   const headerCell = headerRow.insertCell();
   headerCell.colSpan = 2;
-  headerCell.textContent = title;
+  headerCell.textContent = title || ' ';
   headerCell.className = 'table-cell region-header header-right-strong';
   headerCell.style.width = '160px';
   headerCell.style.borderRight = '2px solid #0070c0';
+  headerCell.style.textAlign = 'center';
+  headerCell.style.verticalAlign = 'middle';
 
   // 创建日期列
   for (let i = 0; i < days; i++) {
@@ -72,9 +76,10 @@ export function createShipRouteTable(tableElement, options = {}) {
 
   // 创建右侧标题列
   const rightTitleCell = headerRow.insertCell();
-  rightTitleCell.textContent = loadingPorts.length > 0 ? '装货港' : '卸货港';
+  rightTitleCell.textContent = rightTitle || ' ';
   rightTitleCell.className = 'table-cell last-col-left-strong';
   rightTitleCell.style.width = '80px';
+  rightTitleCell.style.textAlign = 'center';
 
   // 创建港口行
   allPorts.forEach((port) => {
@@ -94,17 +99,20 @@ export function createShipRouteTable(tableElement, options = {}) {
         portCell.rowSpan = 3;
         portCell.textContent = port;
         portCell.className = 'table-cell first-col-strong';
+        portCell.style.textAlign = 'center';
 
         const stateCell = row.insertCell();
         stateCell.textContent = states[i];
         stateCell.className = 'table-cell status-col';
         stateCell.style.borderRight = '2px solid #0070c0';
+        stateCell.style.textAlign = 'center';
       } else {
         // 其他行：只有状态
         const stateCell = row.insertCell();
         stateCell.textContent = states[i];
         stateCell.className = 'table-cell status-col';
         stateCell.style.borderRight = '2px solid #0070c0';
+        stateCell.style.textAlign = 'center';
       }
 
       // 创建日期单元格
@@ -130,6 +138,7 @@ export function createShipRouteTable(tableElement, options = {}) {
         mergeCell.className = 'table-cell last-col-strong last-col-left-strong';
         mergeCell.style.width = '80px';
         mergeCell.style.padding = '0 10px';
+        mergeCell.style.textAlign = 'center';
       }
     }
 
@@ -186,9 +195,10 @@ export function createShipRouteTable(tableElement, options = {}) {
  * @param {string} anchor - 锚点位置 ('center', 'top', 'bottom')
  * @param {Array} ports - 港口列表
  * @param {Object} statesMap - 状态映射
+ * @param {number} [hour] - 小时（0-23，可选）
  * @returns {Object|null} 位置信息 {x, y}
  */
-export function getCellPosition(table, port, state, day, anchor, ports, statesMap) {
+export function getCellPosition(table, port, state, day, anchor, ports, statesMap, hour) {
   const colIndex = day + 1; // 0列是港口名，1列是状态名
   const portIndex = ports.indexOf(port);
   if (portIndex === -1) return null;
@@ -222,6 +232,12 @@ export function getCellPosition(table, port, state, day, anchor, ports, statesMa
   let x = headerCell.getBoundingClientRect().left - tableRect.left;
   let rect = cell.getBoundingClientRect();
   let y = rect.top - tableRect.top;
+
+  // 支持小时级别定位
+  if (typeof hour === 'number' && hour >= 0 && hour <= 23) {
+    const cellWidth = rect.width;
+    x += (cellWidth / 24) * hour + cellWidth / 48; // cellWidth/48是半小时偏移，居中
+  }
   
   if (anchor === 'center') {
     y += rect.height / 2;
